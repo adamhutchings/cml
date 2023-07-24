@@ -56,6 +56,7 @@ int cmlmentry(struct cmlmatrix * m, int i, int j) {
 
 int cmlmsentry(struct cmlmatrix * m, int i, int j, float v) {
     m->entries[i * m->n + j] += v;
+    return 0;
 }
 
 int cmlmul(struct cmlmatrix * m, struct cmlvector * v1, struct cmlvector * v2) {
