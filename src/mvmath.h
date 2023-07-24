@@ -20,4 +20,15 @@ int cmlvfree(struct cmlvector * v);
 /* This adds each entry in v2 to v1. */
 int cmlvadd (struct cmlvector * v1, struct cmlvector * v2);
 
+/**
+ * A matrix with m rows and n columns.
+ */
+struct cmlmatrix {
+    float * entries;
+    int m, n;
+};
+
+int cmlminit(struct cmlmatrix * m, int rows, int cols);
+int cmlmfree(struct cmlmatrix * m);
+
 #endif /* CML_MVMATH_H */

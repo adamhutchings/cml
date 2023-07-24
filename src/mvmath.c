@@ -17,11 +17,23 @@ int cmlvfree(struct cmlvector * v) {
 }
 
 int cmlvadd(struct cmlvector * v1, struct cmlvector * v2) {
-    /* Make sure neither is null and they are the same size. */
-    assert(v1 && v2);
+    /* Make sure they are the same size. */
     assert(v1->len == v2->len);
     for (int i = 0; i < v1->len; ++i) {
         v1->entries[i] += v2->entries[i];
     }
+    return 0;
+}
+
+int cmlminit(struct cmlmatrix * m, int rows, int cols) {
+    m->m = rows;
+    m->n = cols;
+    m->entries = calloc(rows * cols, sizeof(float));
+    assert(m->entries);
+    return 0;
+}
+
+int cmlmfree(struct cmlmatrix * m) {
+    free(m->entries);
     return 0;
 }
