@@ -5,6 +5,7 @@
 
 /* Nothing but initialization of the memory. */
 int cmlvinit(struct cmlvector * v, int size) {
+    assert(v);
     v->len = size;
     v->entries = calloc(v->len, sizeof(float));
     assert(v->entries);
@@ -12,12 +13,14 @@ int cmlvinit(struct cmlvector * v, int size) {
 }
 
 int cmlvfree(struct cmlvector * v) {
+    assert(v);
     free(v->entries);
     return 0;
 }
 
 int cmlvadd(struct cmlvector * v1, struct cmlvector * v2) {
-    /* Make sure they are the same size. */
+    /* Make sure both exist. */
+    assert(v1 && v2);
     assert(v1->len == v2->len);
     for (int i = 0; i < v1->len; ++i) {
         v1->entries[i] += v2->entries[i];
@@ -26,6 +29,7 @@ int cmlvadd(struct cmlvector * v1, struct cmlvector * v2) {
 }
 
 int cmlminit(struct cmlmatrix * m, int rows, int cols) {
+    assert(m);
     m->m = rows;
     m->n = cols;
     m->entries = calloc(rows * cols, sizeof(float));
@@ -34,6 +38,7 @@ int cmlminit(struct cmlmatrix * m, int rows, int cols) {
 }
 
 int cmlmfree(struct cmlmatrix * m) {
+    assert(m);
     free(m->entries);
     return 0;
 }
