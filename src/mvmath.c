@@ -54,6 +54,10 @@ int cmlmentry(struct cmlmatrix * m, int i, int j) {
     return m->entries[i * m->n + j];
 }
 
+int cmlmsentry(struct cmlmatrix * m, int i, int j, float v) {
+    m->entries[i * m->n + j] += v;
+}
+
 int cmlmul(struct cmlmatrix * m, struct cmlvector * v1, struct cmlvector * v2) {
 
     /* The checks are that v1 has as many entries as m has columns, and that v2

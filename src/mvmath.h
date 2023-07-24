@@ -34,6 +34,9 @@ int cmlmfree(struct cmlmatrix * m);
 /* Get the entry in the ith row and the jth column. */
 int cmlmentry(struct cmlmatrix * m, int i, int j);
 
+/* Alter the entry in the ith row and the jth column by x amount. */
+int cmlmsentry(struct cmlmatrix * m, int i, int j, float v);
+
 /**
  * Multiply v1 by m and store the result in v2.
  */
