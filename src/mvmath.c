@@ -55,6 +55,12 @@ int cmlmentry(struct cmlmatrix * m, int i, int j) {
 }
 
 int cmlmsentry(struct cmlmatrix * m, int i, int j, float v) {
+    assert(
+        (i > 0)
+    &&  (j > 0)
+    &&  (i < m->m)
+    &&  (j < m->n)
+    );
     m->entries[i * m->n + j] += v;
     return 0;
 }
