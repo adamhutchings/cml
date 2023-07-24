@@ -89,7 +89,7 @@ int cmlmul(struct cmlmatrix * m, struct cmlvector * v1, struct cmlvector * v2) {
         /* The ith entry in the output vector is the sum over all j of the jth
         entry in the input times the (i, j)th entry in the matrix. */
         for (int j = 0; j < m->m; ++j) {
-            v2->entries[i] += v1->entries[j] * cmlmentry(m, i, j);
+            cmlvsentry(v2, i, cmlventry(v1, j) * cmlmentry(m, i, j));
         }
     }
 
