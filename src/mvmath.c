@@ -65,15 +65,6 @@ int cmlmsentry(struct cmlmatrix * m, int i, int j, float v) {
     return 0;
 }
 
-float cmlventry(struct cmlvector * m, int i) {
-    return m->entries[i];
-}
-
-int cmlvsentry(struct cmlvector * m, int i, float v) {
-    m->entries[i] += v;
-    return 0;
-}
-
 int cmlmul(struct cmlmatrix * m, struct cmlvector * v1, struct cmlvector * v2) {
 
     /* The checks are that v1 has as many entries as m has columns, and that v2
@@ -89,7 +80,7 @@ int cmlmul(struct cmlmatrix * m, struct cmlvector * v1, struct cmlvector * v2) {
         /* The ith entry in the output vector is the sum over all j of the jth
         entry in the input times the (i, j)th entry in the matrix. */
         for (int j = 0; j < m->m; ++j) {
-            cmlvsentry(v2, i, cmlventry(v1, j) * cmlmentry(m, i, j));
+            v2->entries[i] += v1->entries[j] * cmlmentry(m, i, j);
         }
     }
 

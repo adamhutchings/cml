@@ -17,9 +17,6 @@ struct cmlvector {
 int cmlvinit(struct cmlvector * v, int size);
 int cmlvfree(struct cmlvector * v);
 
-float cmlventry(struct cmlvector * m, int i);
-int cmlvsentry(struct cmlvector * m, int i, float v);
-
 /* This adds each entry in v2 to v1. */
 int cmlvadd (struct cmlvector * v1, struct cmlvector * v2);
 
