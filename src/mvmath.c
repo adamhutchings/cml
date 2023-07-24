@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* Nothing but initialization of the memory. */
 int cmlvinit(struct cmlvector * v, int size) {
@@ -41,4 +42,37 @@ int cmlmfree(struct cmlmatrix * m) {
     assert(m);
     free(m->entries);
     return 0;
+}
+
+int cmlmentry(struct cmlmatrix * m, int i, int j) {
+    assert(
+        (i > 0)
+    &&  (j > 0)
+    &&  (i < m->m)
+    &&  (j < m->n)
+    );
+    return m->entries[i * m->n + j];
+}
+
+int cmlmul(struct cmlmatrix * m, struct cmlvector * v1, struct cmlvector * v2) {
+
+    /* The checks are that v1 has as many entries as m has columns, and that v2
+    has as many entries as m has rows. */
+
+    assert(v1->len == m->n);
+    assert(v2->len == m->m);
+
+    /* Ready the field. */
+    memset(v2->entries, 0, v2->len * sizeof(float));
+
+    for (int i = 0; i < m->m; ++i) {
+        /* The ith entry in the output vector is the sum over all j of the jth
+        entry in the input times the (i, j)th entry in the matrix. */
+        for (int j = 0; j < m->m; ++j) {
+            v2->entries[i] += v1->entries[j] * cmlmentry(m, i, j);
+        }
+    }
+
+    return 0;
+
 }

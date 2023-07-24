@@ -31,4 +31,12 @@ struct cmlmatrix {
 int cmlminit(struct cmlmatrix * m, int rows, int cols);
 int cmlmfree(struct cmlmatrix * m);
 
+/* Get the entry in the ith row and the jth column. */
+int cmlmentry(struct cmlmatrix * m, int i, int j);
+
+/**
+ * Multiply v1 by m and store the result in v2.
+ */
+int cmlmul(struct cmlmatrix * m, struct cmlvector * v1, struct cmlvector * v2);
+
 #endif /* CML_MVMATH_H */
