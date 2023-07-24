@@ -17,6 +17,9 @@ struct cmlvector {
 int cmlvinit(struct cmlvector * v, int size);
 int cmlvfree(struct cmlvector * v);
 
+float cmlventry(struct cmlvector * m, int i);
+int cmlvsentry(struct cmlvector * m, int i, float v);
+
 /* This adds each entry in v2 to v1. */
 int cmlvadd (struct cmlvector * v1, struct cmlvector * v2);
 
@@ -32,7 +35,7 @@ int cmlminit(struct cmlmatrix * m, int rows, int cols);
 int cmlmfree(struct cmlmatrix * m);
 
 /* Get the entry in the ith row and the jth column. */
-int cmlmentry(struct cmlmatrix * m, int i, int j);
+float cmlmentry(struct cmlmatrix * m, int i, int j);
 
 /* Alter the entry in the ith row and the jth column by x amount. */
 int cmlmsentry(struct cmlmatrix * m, int i, int j, float v);

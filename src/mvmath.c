@@ -44,7 +44,7 @@ int cmlmfree(struct cmlmatrix * m) {
     return 0;
 }
 
-int cmlmentry(struct cmlmatrix * m, int i, int j) {
+float cmlmentry(struct cmlmatrix * m, int i, int j) {
     assert(
         (i > 0)
     &&  (j > 0)
@@ -62,6 +62,15 @@ int cmlmsentry(struct cmlmatrix * m, int i, int j, float v) {
     &&  (j < m->n)
     );
     m->entries[i * m->n + j] += v;
+    return 0;
+}
+
+float cmlventry(struct cmlvector * m, int i) {
+    return m->entries[i];
+}
+
+int cmlvsentry(struct cmlvector * m, int i, float v) {
+    m->entries[i] += v;
     return 0;
 }
 
