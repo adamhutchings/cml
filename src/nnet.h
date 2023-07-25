@@ -13,8 +13,8 @@ struct cmlneuralnet {
     /* This is the number of matrices that the net has. */
     int layers;
 
-    /* A list of <layers> cmlmatrix pointers. */
-    struct cmlmatrix ** matrices;
+    /* A list of <layers> cmlmatrices. */
+    struct cmlmatrix * matrices;
 
     /* A list of <layers> bias vectors. */
     struct cmlvector * biases;
