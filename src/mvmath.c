@@ -46,8 +46,8 @@ int cmlmfree(struct cmlmatrix * m) {
 
 float cmlmentry(struct cmlmatrix * m, int i, int j) {
     assert(
-        (i > 0)
-    &&  (j > 0)
+        (i >= 0)
+    &&  (j >= 0)
     &&  (i < m->m)
     &&  (j < m->n)
     );
@@ -56,8 +56,8 @@ float cmlmentry(struct cmlmatrix * m, int i, int j) {
 
 int cmlmsentry(struct cmlmatrix * m, int i, int j, float v) {
     assert(
-        (i > 0)
-    &&  (j > 0)
+        (i >= 0)
+    &&  (j >= 0)
     &&  (i < m->m)
     &&  (j < m->n)
     );
@@ -79,7 +79,7 @@ int cmlmul(struct cmlmatrix * m, struct cmlvector * v1, struct cmlvector * v2) {
     for (int i = 0; i < m->m; ++i) {
         /* The ith entry in the output vector is the sum over all j of the jth
         entry in the input times the (i, j)th entry in the matrix. */
-        for (int j = 0; j < m->m; ++j) {
+        for (int j = 0; j < m->n; ++j) {
             v2->entries[i] += v1->entries[j] * cmlmentry(m, i, j);
         }
     }
