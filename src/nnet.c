@@ -21,7 +21,7 @@ int cmlninit(struct cmlneuralnet * net, int insize, int outsize, int layers) {
     net->im_sizes = calloc(layers - 1, sizeof(int));
     for (int i = 1; i < layers; ++i) {
         net->im_sizes[i - 1] = insize * pow(
-            (double) insize / outsize, (float) i / (layers - 1)
+            (double) outsize / insize, (float) i / layers
         );
     }
 
