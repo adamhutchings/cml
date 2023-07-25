@@ -24,6 +24,8 @@ struct cmlneuralnet {
     5x10, 4x5, and 3x4. */
     int * im_sizes;
 
+    int insize, outsize;
+
 };
 
 /**
