@@ -29,11 +29,11 @@ int cmlvadd(struct cmlvector * v1, struct cmlvector * v2) {
     return 0;
 }
 
-int cmlminit(struct cmlmatrix * m, int rows, int cols) {
+int cmlminit(struct cmlmatrix * m, int is, int os) {
     assert(m);
-    m->m = rows;
-    m->n = cols;
-    m->entries = calloc(rows * cols, sizeof(float));
+    m->m = os;
+    m->n = is;
+    m->entries = calloc(is * os, sizeof(float));
     assert(m->entries);
     return 0;
 }

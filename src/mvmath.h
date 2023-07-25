@@ -28,7 +28,7 @@ struct cmlmatrix {
     int m, n;
 };
 
-int cmlminit(struct cmlmatrix * m, int rows, int cols);
+int cmlminit(struct cmlmatrix * m, int is, int os);
 int cmlmfree(struct cmlmatrix * m);
 
 /* Get the entry in the ith row and the jth column. */
