@@ -56,6 +56,8 @@ int cmlninit(struct cmlneuralnet * net, int insize, int outsize, int layers) {
 
 int cmlnfree(struct cmlneuralnet * net) {
 
+    assert(net);
+
     /* List of things to free:
     Every matrix, then the matrix list itself
     Every bias vector, then the bias vector list itself
