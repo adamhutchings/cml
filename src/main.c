@@ -1,41 +1,37 @@
 #include <assert.h>
 #include <stdio.h>
 
-#include "mvmath.h"
+#include "nnet.h"
 
 /**
- * Simple test: is this true:
- * -1  4  3   1   16
- *  3 -1  2 * 2 = 7
- *  0  1  8   3   26
+ * Make sure that the intermediate sizes are as expected.
  */
-int mvtest() {
-    struct cmlmatrix m;
-    struct cmlvector v1, v2;
-    cmlminit(&m, 3, 3);
-    cmlvinit(&v1, 3);
-    cmlvinit(&v2, 3);
-    v1.entries[0] = 1;
-    v1.entries[1] = 2;
-    v1.entries[2] = 3;
-    cmlmsentry(&m, 0, 0, -1);
-    cmlmsentry(&m, 0, 1,  4);
-    cmlmsentry(&m, 0, 2,  3);
-    cmlmsentry(&m, 1, 0,  3);
-    cmlmsentry(&m, 1, 1, -1);
-    cmlmsentry(&m, 1, 2,  2);
-    cmlmsentry(&m, 2, 0,  0);
-    cmlmsentry(&m, 2, 1,  1);
-    cmlmsentry(&m, 2, 2,  8);
-    cmlmul(&m, &v1, &v2);
-    assert(v2.entries[0] == 16);
-    assert(v2.entries[1] == 7);
-    assert(v2.entries[2] == 26);
+int nntest() {
+    struct cmlneuralnet net;
+    cmlninit(&net, 100, 1, 3);
+    printf("Input size: %d\n", net.insize);
+    printf("1st intermediate: %d\n", net.im_sizes[0]);
+    printf("2nd intermediate: %d\n", net.im_sizes[1]);
+    printf("Output size: %d\n", net.outsize);
+    /* Make sure the matrices are of the right size */
+    printf("1st layer input  size: %d\n", net.matrices[0].n);
+    printf("1st layer output size: %d\n", net.matrices[0].m);
+    printf("2nd layer input  size: %d\n", net.matrices[1].n);
+    printf("2nd layer output size: %d\n", net.matrices[1].m);
+    printf("3rd layer input  size: %d\n", net.matrices[2].n);
+    printf("3rd layer output size: %d\n", net.matrices[2].m);
+    assert(net.matrices[0].n == net.insize);
+    assert(net.matrices[0].m == net.im_sizes[0]);
+    assert(net.matrices[1].n == net.im_sizes[0]);
+    assert(net.matrices[1].m == net.im_sizes[1]);
+    assert(net.matrices[2].n == net.im_sizes[1]);
+    assert(net.matrices[2].m == net.outsize);
+    cmlnfree(&net);
     return 0;
 }
 
 int main(int argc, char ** argv) {
     printf("%s\n", "Hello, World!");
-    mvtest();
+    nntest();
     return 0;
 }
