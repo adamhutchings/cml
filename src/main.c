@@ -42,7 +42,6 @@ int nntest() {
 }
 
 int main(int argc, char ** argv) {
-    printf("%s\n", "Hello, World!");
     nntest();
     return 0;
 }
