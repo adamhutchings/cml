@@ -86,7 +86,6 @@ int cmlnapp(struct cmlneuralnet * net, struct cmlvector * in, struct cmlvector *
     assert(net->insize == in->len);
 
     /* Just put through each layer (matrix and biases). */
-    /* First and last layers done separately because of the input and output being different types. */
     struct cmlvector * lin, * lout;
 
     cmlvinit(out, net->outsize);
@@ -98,6 +97,8 @@ int cmlnapp(struct cmlneuralnet * net, struct cmlvector * in, struct cmlvector *
         return 0;
     }
 
+    /* We go through each net and set up the input and output accordingly,
+    feeding each output in as the input of the next layer. */
     for (int i = 0; i < net->layers; ++i) {
         if (i == 0)
             lin = in;
