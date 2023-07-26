@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 int cmlninit(struct cmlneuralnet * net, int insize, int outsize, int layers) {
@@ -68,13 +69,53 @@ int cmlnfree(struct cmlneuralnet * net) {
     }
     free(net->matrices);
 
-
     for (int i = 0; i < net->layers; ++i) {
         cmlvfree(&(net->biases[i]));
     }
     free(net->biases);
 
     free(net->im_sizes);
+
+    return 0;
+
+}
+
+int cmlnapp(struct cmlneuralnet * net, struct cmlvector * in, struct cmlvector * out) {
+
+    assert(net && in && out);
+    assert(net->insize == in->len);
+
+    /* Just put through each layer (matrix and biases). */
+    /* First and last layers done separately because of the input and output being different types. */
+    struct cmlvector * lin, * lout;
+
+    cmlvinit(out, net->outsize);
+
+    /* If only 1 layer: */
+    if (net->layers == 1) {
+        cmlmul(&(net->matrices[0]), in, out);
+        cmlvadd(out, &(net->biases[0]));
+        return 0;
+    }
+
+    for (int i = 0; i < net->layers; ++i) {
+        if (i == 0)
+            lin = in;
+        else
+            lin = lout;
+        if (i == net->layers - 1) {
+            lout = out;
+        } else {
+            lout = malloc(sizeof (struct cmlvector));
+            cmlvinit(lout, net->im_sizes[i]);
+        }
+        cmlmul(&(net->matrices[i]), lin, lout);
+        cmlvadd(lout, &(net->biases[i]));
+        if (i != 0) {
+            cmlvfree(lin);
+            free(lin);
+        }
+    }
 
     return 0;
 
