@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
+#include <time.h>
 
 int cmlninit(struct cmlneuralnet * net, int insize, int outsize, int layers) {
 
@@ -74,6 +75,33 @@ int cmlnfree(struct cmlneuralnet * net) {
     free(net->biases);
 
     free(net->im_sizes);
+
+    return 0;
+
+}
+
+/* Random float between -1 and 1. */
+float randfloat() {
+    float f = ((float) rand()) / ((float) RAND_MAX);
+    /* Move it from 0 ... 1 to -1 ... 1. */
+    return f + f - 1.0f;
+}
+
+/* Randomly seed every matrix and bias entry between -1 and 1. */
+int cmlnrandinit(struct cmlneuralnet * net) {
+
+    time_t t;
+    srand((unsigned) time(&t));
+
+    for (int i = 0; i < net->layers; ++i) {
+        /* Matrices */
+        for (int j = 0; j < net->matrices[i].m * net->matrices[i].n; ++j) {
+            net->matrices[i].entries[j] = randfloat();
+        }
+        for (int j = 0; j < net->biases[i].len; ++j) {
+            net->biases[i].entries[j] = randfloat();
+        }
+    }
 
     return 0;
 

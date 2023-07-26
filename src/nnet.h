@@ -40,6 +40,11 @@ int cmlninit(struct cmlneuralnet * net, int insize, int outsize, int layers);
 int cmlnfree(struct cmlneuralnet * net);
 
 /**
+ * Randomly initialize neural net parameters.
+ */
+int cmlnrandinit(struct cmlneuralnet * net);
+
+/**
  * Put a single vector through the neural network.
  * This initializes out correcrtly, so make sure to pass in a freed vector.
  */
