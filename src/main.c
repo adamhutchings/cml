@@ -29,9 +29,11 @@ int nntest() {
     /* Let's make sure we can actually multiply something. */
     struct cmlvector in, out;
     cmlvinit(&in, 100);
+    /* Let's see if the biases will work right. */
+    net.biases[2].entries[0] = 0.5f;
     cmlnapp(&net, &in, &out);
     printf("Output size: %d\n", out.len);
-    /* Output should be 0 because every entry in the net is 0. */
+    /* Output should be 0.5 because every entry in the net is 0 with a bias. */
     printf("Output: %f\n", out.entries[0]);
     cmlvfree(&in);
     cmlvfree(&out);
