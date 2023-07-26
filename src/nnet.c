@@ -2,7 +2,6 @@
 
 #include <assert.h>
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 int cmlninit(struct cmlneuralnet * net, int insize, int outsize, int layers) {
@@ -80,6 +79,18 @@ int cmlnfree(struct cmlneuralnet * net) {
 
 }
 
+/* Activation function. */
+static float sigmoid(float input) {
+    return 1.0f / (1 + exp(-input));
+}
+
+static int applyactivation(struct cmlvector * v) {
+    for (int i = 0; i < v->len; ++i) {
+        v->entries[i] = sigmoid(v->entries[i]);
+    }
+    return 0;
+}
+
 int cmlnapp(struct cmlneuralnet * net, struct cmlvector * in, struct cmlvector * out) {
 
     assert(net && in && out);
@@ -111,6 +122,7 @@ int cmlnapp(struct cmlneuralnet * net, struct cmlvector * in, struct cmlvector *
             cmlvinit(lout, net->im_sizes[i]);
         }
         cmlmul(&(net->matrices[i]), lin, lout);
+        applyactivation(lout);
         cmlvadd(lout, &(net->biases[i]));
         if (i != 0) {
             cmlvfree(lin);
