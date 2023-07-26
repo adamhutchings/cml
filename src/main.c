@@ -26,6 +26,15 @@ int nntest() {
     assert(net.matrices[1].m == net.im_sizes[1]);
     assert(net.matrices[2].n == net.im_sizes[1]);
     assert(net.matrices[2].m == net.outsize);
+    /* Let's make sure we can actually multiply something. */
+    struct cmlvector in, out;
+    cmlvinit(&in, 100);
+    cmlnapp(&net, &in, &out);
+    printf("Output size: %d\n", out.len);
+    /* Output should be 0 because every entry in the net is 0. */
+    printf("Output: %f\n", out.entries[0]);
+    cmlvfree(&in);
+    cmlvfree(&out);
     cmlnfree(&net);
     return 0;
 }
