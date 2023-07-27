@@ -46,7 +46,7 @@ int cmlnrandinit(struct cmlneuralnet * net);
 
 /**
  * Put a single vector through the neural network.
- * This initializes out correcrtly, so make sure to pass in a freed vector.
+ * This initializes out correctly, so make sure to pass in a freed vector.
  */
 int cmlnapp(struct cmlneuralnet * net, struct cmlvector * in, struct cmlvector * out);
 
