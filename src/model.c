@@ -9,6 +9,12 @@ int cmlmodelinit(struct cmlmodel * model, int insize, int outsize, int layers) {
     return 0;
 }
 
+
+int cmlmodelfree(struct cmlmodel * model) {
+    assert(model);
+    cmlnfree(&model->net);
+}
+
 int cmlmodeladdtraining(struct cmlmodel * model, int train_no, struct cmlvector * tri, struct cmlvector * tro) {
     assert(model);
     assert(tri);

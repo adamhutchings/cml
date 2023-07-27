@@ -24,6 +24,8 @@ struct cmlmodel {
 
 int cmlmodelinit(struct cmlmodel * model, int insize, int outsize, int layers);
 
+int cmlmodelfree(struct cmlmodel * model);
+
 int cmlmodeladdtraining(struct cmlmodel * model, int train_no, struct cmlvector * tri, struct cmlvector * tro);
 
 int cmlmodeladdtesting(struct cmlmodel * model, int test_no, struct cmlvector * tei, struct cmlvector * teo);
