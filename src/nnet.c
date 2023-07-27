@@ -107,19 +107,9 @@ int cmlnrandinit(struct cmlneuralnet * net) {
 
 }
 
-/* Activation function. */
-static float sigmoid(float input) {
-    return 1.0f / (1 + exp(-input));
-}
-
-static float sp(float input) {
-    float s = sigmoid(input);
-    return s * (1 - s);
-}
-
 static int applyactivation(struct cmlvector * v) {
     for (int i = 0; i < v->len; ++i) {
-        v->entries[i] = sigmoid(v->entries[i]);
+        v->entries[i] = cmlsigmoid(v->entries[i]);
     }
     return 0;
 }

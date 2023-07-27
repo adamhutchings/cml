@@ -1,6 +1,7 @@
 #include "mvmath.h"
 
 #include <assert.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -91,4 +92,14 @@ int cmlmul(struct cmlmatrix * m, struct cmlvector * v1, struct cmlvector * v2) {
 
     return 0;
 
+}
+
+/* Activation function. */
+float cmlsigmoid(float input) {
+    return 1.0f / (1 + exp(-input));
+}
+
+float cmlsp(float input) {
+    float s = cmlsigmoid(input);
+    return s * (1 - s);
 }
