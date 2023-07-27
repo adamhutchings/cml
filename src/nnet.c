@@ -150,8 +150,8 @@ int cmlnapp(struct cmlneuralnet * net, struct cmlvector * in, struct cmlvector *
             cmlvinit(lout, net->im_sizes[i]);
         }
         cmlmul(&(net->matrices[i]), lin, lout);
-        applyactivation(lout);
         cmlvadd(lout, &(net->biases[i]));
+        applyactivation(lout);
         if (i != 0) {
             cmlvfree(lin);
             free(lin);
