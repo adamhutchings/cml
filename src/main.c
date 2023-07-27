@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <time.h>
 
+#include "iris-reader.h"
 #include "nnet.h"
 
 /**
@@ -40,7 +41,29 @@ int nntest() {
     return 0;
 }
 
+/**
+ * Test the basics of a model.
+ */
+int modeltest() {
+    int no;
+    struct cmlvector * ins;
+    struct cmlvector * outs;
+    cmlreadiris("data/iris/iristesting.csv", &ins, &outs, &no);
+    /* Making sure the first row of data is read right. */
+    printf(
+        "%.1f %.1f %.1f %.1f -> %.1f\n",
+        ins[0].entries[0],
+        ins[0].entries[1],
+        ins[0].entries[2],
+        ins[0].entries[3],
+        outs[0].entries[0]
+    );
+    printf("%d\n", no);
+    cmlfreedata(ins, outs, no);
+    return 0;
+}
+
 int main(int argc, char ** argv) {
-    nntest();
+    modeltest();
     return 0;
 }
