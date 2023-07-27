@@ -34,4 +34,9 @@ float cmlmodelgettestloss(struct cmlmodel * model);
 
 float cmlmodelgettrainloss(struct cmlmodel * model);
 
+/**
+ * This is the real meat. Train the neural network one round.
+ */
+int cmlmodellearn(struct cmlmodel * model, float learnspeed);
+
 #endif /* CML_MODEL_H */
