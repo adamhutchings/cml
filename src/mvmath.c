@@ -19,6 +19,11 @@ int cmlvfree(struct cmlvector * v) {
     return 0;
 }
 
+int cmlvclear(struct cmlvector * v) {
+    memset(v->entries, 0, v->len * sizeof(float));
+    return 0;
+}
+
 int cmlvadd(struct cmlvector * v1, struct cmlvector * v2) {
     /* Make sure both exist. */
     assert(v1 && v2);

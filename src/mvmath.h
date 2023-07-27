@@ -20,6 +20,9 @@ int cmlvfree(struct cmlvector * v);
 /* This adds each entry in v2 to v1. */
 int cmlvadd (struct cmlvector * v1, struct cmlvector * v2);
 
+/* Set all data to zero. */
+int cmlvclear(struct cmlvector * v);
+
 /**
  * A matrix with m rows and n columns.
  */
