@@ -67,6 +67,8 @@ int cmlreadiris(const char * filepath, struct cmlvector ** ins, struct cmlvector
 
     }
 
+    fclose(fp);
+
     return 0;
 
 }
