@@ -10,4 +10,6 @@
 
 int cmlreadiris(const char * filepath, struct cmlvector ** ins, struct cmlvector ** outs, int * size);
 
+int cmlfreedata(struct cmlvector * ins, struct cmlvector * outs, int no);
+
 #endif /* CML_IRIS_READER_H */
