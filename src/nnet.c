@@ -136,6 +136,7 @@ int cmlnapp(struct cmlneuralnet * net, struct cmlvector * in, struct cmlvector *
 
     /* If only 1 layer: */
     if (net->layers == 1) {
+        cmlvinit(out, net->outsize);
         cmlmul(&(net->matrices[0]), in, out);
         cmlvadd(out, &(net->biases[0]));
         return 0;
