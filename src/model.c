@@ -90,6 +90,7 @@ float cmlmodelgettrainloss(struct cmlmodel * model) {
 }
 
 /* Stores the partial derivatives, S, D, and D-hat values for a layer. */
+/* <partials> is a list of all derivative lists, for each entry. */
 struct pds {
 
     int len;
@@ -150,28 +151,46 @@ static int recursepds(struct pds * cur, struct pds * next, struct cmlneuralnet *
 static int cmlgetpddp(struct cmlneuralnet * net, struct cmlvector * i, struct cmlvector * o, struct cmlneuralnet * pds) {
 
     /* Start with the 0th layer entries. */
-    struct pds * l = calloc(1, sizeof (struct pds));
-    struct pds * next = calloc(1, sizeof (struct pds));
+    struct pds l, next;
 
     /* As outlined in the doc, S and D-hat are 0, while D is the input. */
     /* Also, all partial derivatives are zero here. */
-    pdinit(l, net, 0);
-    memcpy(l->dvals.entries, i->entries, i->len * sizeof(float));
+    pdinit(&l, net, 0);
+    memcpy(l.dvals.entries, i->entries, i->len * sizeof(float));
 
     /* Now, we recurse <layers> times to get the derivatives for the output layer. */
-    for (int j = 1; j < net->layers; ++j) {
-        pdinit(next, net, j);
-        recursepds(l, next, net, j + 1);
-        pdfree(l);
+    for (int j = 1; j < net->layers + 1; ++j) {
+        pdinit(&next, net, j);
+        recursepds(&l, &next, net, j + 1);
+        pdfree(&l);
         l = next;
     }
 
     /* TODO -- pd's are in <next>. Use the formula to find the pd's for loss. */
 
-    pdfree(next);
+    /* Get the matrix pd's. */
+    for (int j = 0; j < net->layers; ++j) {
+        for (int k = 0; k < net->matrices[j].m * net->matrices[j].n; ++k) {
+            for (int l = 0; l < net->outsize; ++l) {
+                float partial = next.partials[l].matrices[j].entries[k];
+                float diff = next.dvals.entries[l] - o->entries[l];
+                pds->matrices[j].entries[k] += 2 * diff * partial;
+            }
+        }
+    }
 
-    free(l);
-    free(next);
+    /* Get the bias pd's. */
+    for (int j = 0; j < net->layers; ++j) {
+        for (int k = 0; k < net->biases[j].len; ++k) {
+            for (int l = 0; l < net->outsize; ++l) {
+                float partial = next.partials[l].biases[j].entries[k];
+                float diff = next.dvals.entries[l] - o->entries[l];
+                pds->biases[j].entries[k] += 2 * diff * partial;
+            }
+        }
+    }
+
+    pdfree(&next);
 
     return 0;
 
