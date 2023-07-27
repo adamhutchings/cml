@@ -23,11 +23,18 @@ int modeltest() {
     cmlmodeladdtraining(&model, trainno, tri, tro);
     cmlmodeladdtesting(&model, testno, tei, teo);
 
-    /* Just make sure the loss calculation is going alright. */
     float trainloss = cmlmodelgettrainloss(&model);
     float testloss = cmlmodelgettestloss(&model);
 
-    printf("Training loss: %f, testing loss: %f.\n", trainloss, testloss);
+    printf("Before: training loss: %f, testing loss: %f.\n", trainloss, testloss);
+
+    /* Iterate one learning cycle. */
+    cmlmodellearn(&model, 0.001);
+
+    trainloss = cmlmodelgettrainloss(&model);
+    testloss = cmlmodelgettestloss(&model);
+
+    printf("After: training loss: %f, testing loss: %f.\n", trainloss, testloss);
 
     cmlmodelfree(&model);
 
