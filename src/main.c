@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
+#include <time.h>
 
 #include "nnet.h"
 
@@ -9,32 +10,30 @@
 int nntest() {
     struct cmlneuralnet net;
     cmlninit(&net, 100, 1, 3);
-    printf("Input size: %d\n", net.insize);
-    printf("1st intermediate: %d\n", net.im_sizes[0]);
-    printf("2nd intermediate: %d\n", net.im_sizes[1]);
-    printf("Output size: %d\n", net.outsize);
-    /* Make sure the matrices are of the right size */
-    printf("1st layer input  size: %d\n", net.matrices[0].n);
-    printf("1st layer output size: %d\n", net.matrices[0].m);
-    printf("2nd layer input  size: %d\n", net.matrices[1].n);
-    printf("2nd layer output size: %d\n", net.matrices[1].m);
-    printf("3rd layer input  size: %d\n", net.matrices[2].n);
-    printf("3rd layer output size: %d\n", net.matrices[2].m);
-    assert(net.matrices[0].n == net.insize);
-    assert(net.matrices[0].m == net.im_sizes[0]);
-    assert(net.matrices[1].n == net.im_sizes[0]);
-    assert(net.matrices[1].m == net.im_sizes[1]);
-    assert(net.matrices[2].n == net.im_sizes[1]);
-    assert(net.matrices[2].m == net.outsize);
-    /* Let's make sure we can actually multiply something. */
     struct cmlvector in, out;
     cmlvinit(&in, 100);
-    /* Let's see if the biases will work right. */
-    net.biases[2].entries[0] = 0.5f;
-    cmlnapp(&net, &in, &out);
-    printf("Output size: %d\n", out.len);
-    /* Output should be 0.5 because every entry in the net is 0 with a bias. */
-    printf("Output: %f\n", out.entries[0]);
+    cmlnrandinit(&net);
+    /* Test 1 million applications. */
+    time_t start, end;
+    time(&start);
+    int trials = 1000000;
+    int pct = trials / 100;
+    for (int i = 0; i < trials; ++i) {
+        if (i % pct == pct - 1) {
+            printf("%d%% of the way done.\n", (i + 1) / pct);
+        }
+        cmlnapp(&net, &in, &out);
+    }
+    time(&end);
+    double avgtime = (end - start) / (double) trials;
+    printf("Average time to run neural net is %f seconds.\n", avgtime);
+    int totalentries = 0;
+    for (int i = 0; i < net.layers; ++i) {
+        totalentries += net.matrices[i].m * net.matrices[i].n;
+        totalentries += net.biases[i].len;
+    }
+    printf("Total parameters in the net: %d\n", totalentries);
+    printf("Time to complete one learning cycle using epsilon method: %f seconds.\n", avgtime * (double) totalentries);
     cmlvfree(&in);
     cmlvfree(&out);
     cmlnfree(&net);
