@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -23,18 +24,30 @@ int modeltest() {
     cmlmodeladdtraining(&model, trainno, tri, tro);
     cmlmodeladdtesting(&model, testno, tei, teo);
 
-    float trainloss = cmlmodelgettrainloss(&model);
-    float testloss = cmlmodelgettestloss(&model);
+    float trainloss, testloss;
+    float oldtr, oldte;
 
-    printf("Before: training loss: %f, testing loss: %f.\n", trainloss, testloss);
+    printf("%s\n", "Testing on iris dataset ...");
 
-    /* Iterate one learning cycle. */
-    cmlmodellearn(&model, 0.001);
+    time_t start, end;
 
-    trainloss = cmlmodelgettrainloss(&model);
-    testloss = cmlmodelgettestloss(&model);
+    start = time(&start);
 
-    printf("After: training loss: %f, testing loss: %f.\n", trainloss, testloss);
+    for (int i = 0; ; ++i) {
+        trainloss = cmlmodelgettrainloss(&model);
+        testloss = cmlmodelgettestloss(&model);
+        if (i % 1000 == 0)
+            printf("After %d rounds: training loss: %f, testing loss: %f.\n", i, trainloss, testloss);
+        cmlmodellearn(&model, 0.000001 * 1.0f / trainloss);
+        if (i > 100 && trainloss > oldtr) {
+            end = time(&start);
+            printf("Finished after %d rounds in %.2ld seconds.\n", i, end - start);
+            printf("Training loss: %f, testing loss: %f.\n", trainloss, testloss);
+            break;
+        }
+        oldtr = trainloss;
+        oldte = testloss;
+    }
 
     cmlmodelfree(&model);
 
