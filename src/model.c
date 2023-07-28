@@ -368,6 +368,8 @@ int cmlmodeltrain(struct cmlmodel * model, float merror) {
     int checkin = (int) (100 * delicacy);
     int prs = checkin * 10;
 
+    int olderror = 0;
+
     for (int i = 0; ; ++i) {
         trainloss = cmlmodelgettrainloss(model);
         testloss = cmlmodelgettestloss(model);
@@ -379,16 +381,28 @@ int cmlmodeltrain(struct cmlmodel * model, float merror) {
         if (i % checkin == 0) {
             if (i % prs == 0)
                 printf("After %d rounds: training loss: %f, testing loss: %f.\n", i, trainloss, testloss);
-            if (i > 0 && trainloss > oldtr) {
-                if (fails > MAX_FAILS) {
-                    end = time(&end);
-                    printf("Finished after %d rounds in %.2ld seconds.\n", i, end - start);
-                    printf("Training loss: %f, testing loss: %f.\n", trainloss, testloss);
-                    return 0;
+            if (i > 0) {
+                int ne;
+                if (trainloss > oldtr) {
+                    ne = 1;
+                } else if ((oldtr - trainloss) / trainloss < 0.0001) {
+                    ne = -1;
                 } else {
-                    ipenalty = ipenalty * 2 - 1;
-                    ++fails;
+                    ne = 0;
                 }
+                /* If the errors are opposite, it's time to stop training. */
+                if (olderror != ne && ne != 0 && olderror != 0) {
+                    printf("%s\n", "Stopped improving. Returning ...");
+                    return 0;
+                }
+                if (ne == 1) {
+                    ipenalty = 0;
+                    tspeed *= 0.5;
+                } else if (ne == -1) {
+                    ipenalty = (ipenalty + 1) * 0.5;
+                    tspeed *= 1.25;
+                }
+                olderror = ne;
             }
             oldtr = trainloss;
             oldte = testloss;
