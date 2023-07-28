@@ -25,7 +25,7 @@ int modeltest() {
     cmlmodeladdtesting(&model, testno, tei, teo);
 
     /* For Iris, our goal loss is less than 0.04. */
-    cmlmodeltrain(&model);
+    cmlmodeltrain(&model, 0.04);
 
     printf("%s\n", "Testing on iris dataset ...");
 

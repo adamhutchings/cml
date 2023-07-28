@@ -11,6 +11,7 @@
 int cmlmodelinit(struct cmlmodel * model, int insize, int outsize, int layers) {
     assert(model);
     cmlninit(&model->net, insize, outsize, layers);
+    cmlninit(&model->lasts, insize, outsize, layers);
     cmlnrandinit(&model->net);
     return 0;
 }
@@ -19,6 +20,7 @@ int cmlmodelinit(struct cmlmodel * model, int insize, int outsize, int layers) {
 int cmlmodelfree(struct cmlmodel * model) {
     assert(model);
     cmlnfree(&model->net);
+    cmlnfree(&model->lasts);
     return 0;
 }
 
@@ -307,7 +309,7 @@ static int cmlgetpdfrompoint(struct cmlmodel * model, struct cmlneuralnet * pds,
     return cmlgetpddp(&model->net, &model->trains_in[i], &model->trains_out[i], pds);
 }
 
-int cmlmodellearn(struct cmlmodel * model, float learnspeed) {
+int cmlmodellearn(struct cmlmodel * model, float learnspeed, float inertia) {
 
     /* Every training datapoint will add its own weights to this. */
     struct cmlneuralnet tweaks;
@@ -320,7 +322,10 @@ int cmlmodellearn(struct cmlmodel * model, float learnspeed) {
     /* Change all matrix entries */
     for (int i = 0; i < model->net.layers; ++i) {
         for (int p = 0; p < model->net.matrices[i].m * model->net.matrices[i].n; ++p) {
-            model->net.matrices[i].entries[p] -= tweaks.matrices[i].entries[p] * learnspeed;
+            float n = -tweaks.matrices[i].entries[p] * learnspeed;
+            n = n * (1 - inertia) - model->lasts.matrices[i].entries[p] * inertia;
+            model->net.matrices[i].entries[p] += n;
+            model->lasts.matrices[i].entries[p] = -n;
         }
     }
 
@@ -334,7 +339,10 @@ int cmlmodellearn(struct cmlmodel * model, float learnspeed) {
             s = model->net.im_sizes[i];
         
         for (int p = 0; p < s; ++p) {
-            model->net.biases[i].entries[p] -= tweaks.biases[i].entries[p] * learnspeed;
+            float n = -tweaks.biases[i].entries[p] * learnspeed;
+            n = n * (1 - inertia) - model->lasts.biases[i].entries[p] * inertia;
+            model->net.biases[i].entries[p] -= n;
+            model->lasts.biases[i].entries[p] = -n;
         }
     }
 
@@ -342,7 +350,7 @@ int cmlmodellearn(struct cmlmodel * model, float learnspeed) {
 
 }
 
-int cmlmodeltrain(struct cmlmodel * model) {
+int cmlmodeltrain(struct cmlmodel * model, float merror) {
 
     float trainloss, testloss;
     float oldtr, oldte;
@@ -352,13 +360,15 @@ int cmlmodeltrain(struct cmlmodel * model) {
     start = time(&start);
 
     int fails = 0, MAX_FAILS = 10;
-
-    float tspeed = 0.00001;
+    float tspeed = 0.000001;
+    float ipenalty = 1.0f;
 
     for (int i = 0; ; ++i) {
         trainloss = cmlmodelgettrainloss(model);
         testloss = cmlmodelgettestloss(model);
-        cmlmodellearn(model, tspeed * trainloss);
+        if (trainloss < merror)
+            return 0;
+        cmlmodellearn(model, tspeed * trainloss, ipenalty * cmlsigmoid(1/trainloss));
         if (i % 100 == 0) {
             if (i % 1000 == 0)
                 printf("After %d rounds: training loss: %f, testing loss: %f.\n", i, trainloss, testloss);
@@ -369,6 +379,7 @@ int cmlmodeltrain(struct cmlmodel * model) {
                     printf("Training loss: %f, testing loss: %f.\n", trainloss, testloss);
                     return 0;
                 } else {
+                    ipenalty *= 0.5;
                     ++fails;
                 }
             }
