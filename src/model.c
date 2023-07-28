@@ -149,18 +149,101 @@ static int recursepds(struct pds * cur, struct pds * next, struct cmlneuralnet *
     assert(next->svals.len == next->dvals.len);
     assert(next->svals.len == next->dhats.len);
 
+    int dk = next->svals.len;
+    int layers = sinfo->layers;
+
     /* S values */
     cmlmul(&(sinfo->matrices[ln]), &cur->dvals, &next->svals);
     cmlvadd(&next->svals, &sinfo->biases[ln]);
 
     /* D values */
-    for (int i = 0; i < next->svals.len; ++i) {
+    for (int i = 0; i < dk; ++i) {
         next->dvals.entries[i] = cmlsigmoid(next->svals.entries[i]);
     }
 
     /* D-hat values */
-    for (int i = 0; i < next->svals.len; ++i) {
+    for (int i = 0; i < dk; ++i) {
         next->dhats.entries[i] = cmlsp(next->svals.entries[i]);
+    }
+
+    int lsize;
+
+    if (ln == sinfo->layers + 1)
+        lsize = sinfo->outsize;
+    else if (ln == 1)
+        lsize = sinfo->insize;
+    else
+        lsize = sinfo->im_sizes[ln - 1];
+
+    /* Calculate matrix entry pd's */
+
+    /* The derivative of D_k,x with respect to ... */
+    for (int x = 0; x < dk; ++x) {
+
+        /* Higher-layer matrices have derivatives of zero */
+        for (int kp = ln + 1; kp < layers; ++kp) {
+            for (int p = 0; p < sinfo->matrices[kp].m * sinfo->matrices[kp].n; ++p) {
+                next->partials[x].matrices[kp].entries[p] = 0;
+            }
+        }
+
+        /* A_k,m,n */
+        int maxm = sinfo->matrices[ln].m, maxn = sinfo->matrices[ln].n;
+        for (int m = 0; m < maxm; ++m) {
+            for (int n = 0; n < maxn; ++n) {
+                int pos = m * maxn + n;
+                if (x == m) {
+                    next->partials[x].matrices[ln].entries[pos] = next->dhats.entries[x] * cur->dvals.entries[n];
+                } else {
+                    next->partials[x].matrices[ln].entries[pos] = 0;
+                }
+            }
+        }
+
+        /* Lower-level uses recursion. */
+        for (int kp = 0; kp < ln; ++kp) {
+            for (int m = 0; m < sinfo->matrices[kp].m; ++m) {
+                for (int n = 0; n < sinfo->matrices[kp].n; ++n) {
+                    int pos = m * maxn + n;
+                    float sum = 0;
+                    for (int j = 0; j < lsize; ++j) {
+                        sum += sinfo->matrices[ln].entries[x * lsize + j] * cur->partials[j].matrices[kp].entries[pos];
+                    }
+                    next->partials[x].matrices[kp].entries[pos] = sum * next->dhats.entries[x];
+                }
+            }
+        }
+
+    }
+
+    /* Calculate bias pd's */
+    for (int x = 0; x < dk; ++x) {
+
+        /* Higher-level biases have derivatives of zero */
+        for (int kp = ln + 1; kp < layers; ++kp) {
+            for (int p = 0; p < sinfo->biases[kp].len; ++p) {
+                next->partials[x].biases[kp].entries[p] = 0;
+            }
+        }
+
+        /* Current-level biases */
+        for (int p = 0; p < sinfo->biases[ln].len; ++p) {
+            next->partials[x].biases[ln].entries[p] = 0;
+        }
+        next->partials[x].biases[ln].entries[x] = next->dhats.entries[x];
+
+        /* Previous biases */
+        /* Lower-level uses recursion. */
+        for (int kp = 0; kp < ln; ++kp) {
+            for (int p = 0; p < sinfo->biases[kp].len; ++p) {
+                float sum = 0;
+                for (int j = 0; j < lsize; ++j) {
+                    sum += sinfo->matrices[ln].entries[x * lsize + j] * cur->partials[j].biases[kp].entries[p];
+                }
+                next->partials[x].biases[kp].entries[p] = sum * next->dhats.entries[x];
+            }
+        }
+
     }
 
     return 0;
