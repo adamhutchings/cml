@@ -49,6 +49,16 @@ int modeltest() {
         oldte = testloss;
     }
 
+    /* See the actual outputs. */
+
+    struct cmlvector outbuf;
+
+    for (int i = 0; i < model.test_no; ++i) {
+        cmlnapp(&model.net, &model.tests_in[i], &outbuf);
+        printf("Expected value: %.2f, actual value: %.2f.\n", model.tests_out[i].entries[0], outbuf.entries[0]);
+        cmlvfree(&outbuf);
+    }
+
     cmlmodelfree(&model);
 
     cmlfreedata(tri, tro, trainno);
