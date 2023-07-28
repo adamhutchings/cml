@@ -27,6 +27,8 @@ int modeltest() {
     float trainloss, testloss;
     float oldtr, oldte;
 
+    /* For Iris, our goal loss is less than 0.04. */
+
     printf("%s\n", "Testing on iris dataset ...");
 
     time_t start, end;
@@ -36,17 +38,18 @@ int modeltest() {
     for (int i = 0; ; ++i) {
         trainloss = cmlmodelgettrainloss(&model);
         testloss = cmlmodelgettestloss(&model);
-        if (i % 1000 == 0)
+        cmlmodellearn(&model, 0.00001 * trainloss);
+        if (i % 100 == 0) {
             printf("After %d rounds: training loss: %f, testing loss: %f.\n", i, trainloss, testloss);
-        cmlmodellearn(&model, 0.000001);
-        if (i > 100 && trainloss > oldtr) {
-            end = time(&end);
-            printf("Finished after %d rounds in %.2ld seconds.\n", i, end - start);
-            printf("Training loss: %f, testing loss: %f.\n", trainloss, testloss);
-            break;
+            if (i > 0 && trainloss > oldtr) {
+                end = time(&end);
+                printf("Finished after %d rounds in %.2ld seconds.\n", i, end - start);
+                printf("Training loss: %f, testing loss: %f.\n", trainloss, testloss);
+                break;
+            }
+            oldtr = trainloss;
+            oldte = testloss;
         }
-        oldtr = trainloss;
-        oldte = testloss;
     }
 
     /* See the actual outputs. */
