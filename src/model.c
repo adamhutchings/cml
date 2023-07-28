@@ -146,6 +146,9 @@ static int recursepds(struct pds * cur, struct pds * next, struct cmlneuralnet *
 
     /* Calculate S, D, and D-hat values. */
 
+    assert(next->svals.len == next->dvals.len);
+    assert(next->svals.len == next->dhats.len);
+
     /* S values */
     cmlmul(&(sinfo->matrices[ln]), &cur->dvals, &next->svals);
     cmlvadd(&next->svals, &sinfo->biases[ln]);
