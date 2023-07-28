@@ -1,8 +1,11 @@
 #include "model.h"
 
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "mvmath.h"
 
 int cmlmodelinit(struct cmlmodel * model, int insize, int outsize, int layers) {
     assert(model);
@@ -140,8 +143,25 @@ static int pdfree(struct pds * pd) {
 
 /* Take one layer's pd-struct and calculate the next one's. ln is the layer whose entries we are calculating. */
 static int recursepds(struct pds * cur, struct pds * next, struct cmlneuralnet * sinfo, int ln) {
-    /* TODO - actual calculations here! */
+
+    /* Calculate S, D, and D-hat values. */
+
+    /* S values */
+    cmlmul(&(sinfo->matrices[ln]), &cur->dvals, &next->svals);
+    cmlvadd(&next->svals, &sinfo->biases[ln]);
+
+    /* D values */
+    for (int i = 0; i < next->svals.len; ++i) {
+        next->dvals.entries[i] = cmlsigmoid(next->svals.entries[i]);
+    }
+
+    /* D-hat values */
+    for (int i = 0; i < next->svals.len; ++i) {
+        next->dhats.entries[i] = cmlsp(next->svals.entries[i]);
+    }
+
     return 0;
+
 }
 
 /**
@@ -161,7 +181,7 @@ static int cmlgetpddp(struct cmlneuralnet * net, struct cmlvector * i, struct cm
     /* Now, we recurse <layers> times to get the derivatives for the output layer. */
     for (int j = 1; j < net->layers + 1; ++j) {
         pdinit(&next, net, j);
-        recursepds(&l, &next, net, j + 1);
+        recursepds(&l, &next, net, j - 1);
         pdfree(&l);
         l = next;
     }
