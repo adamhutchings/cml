@@ -365,6 +365,9 @@ int cmlmodeltrain(struct cmlmodel * model, float merror) {
     float tspeed = 0.000001 / delicacy;
     float ipenalty = 1.0f;
 
+    int checkin = (int) (100 * delicacy);
+    int prs = checkin * 10;
+
     for (int i = 0; ; ++i) {
         trainloss = cmlmodelgettrainloss(model);
         testloss = cmlmodelgettestloss(model);
@@ -373,8 +376,8 @@ int cmlmodeltrain(struct cmlmodel * model, float merror) {
             return 0;
         }
         cmlmodellearn(model, tspeed * trainloss, ipenalty * cmlsigmoid(1/trainloss));
-        if (i % ((int) (100 * delicacy)) == 0) {
-            if (i % (int) (1000 * delicacy) == 0)
+        if (i % checkin == 0) {
+            if (i % prs == 0)
                 printf("After %d rounds: training loss: %f, testing loss: %f.\n", i, trainloss, testloss);
             if (i > 0 && trainloss > oldtr) {
                 if (fails > MAX_FAILS) {
@@ -383,7 +386,7 @@ int cmlmodeltrain(struct cmlmodel * model, float merror) {
                     printf("Training loss: %f, testing loss: %f.\n", trainloss, testloss);
                     return 0;
                 } else {
-                    ipenalty *= 0.5;
+                    ipenalty = ipenalty * 2 - 1;
                     ++fails;
                 }
             }
