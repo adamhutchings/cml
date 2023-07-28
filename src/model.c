@@ -351,18 +351,26 @@ int cmlmodeltrain(struct cmlmodel * model) {
 
     start = time(&start);
 
+    int fails = 0, MAX_FAILS = 10;
+
+    float tspeed = 0.00001;
+
     for (int i = 0; ; ++i) {
         trainloss = cmlmodelgettrainloss(model);
         testloss = cmlmodelgettestloss(model);
-        cmlmodellearn(model, 0.00001 * (trainloss > 1 ? trainloss : 1));
+        cmlmodellearn(model, tspeed * trainloss);
         if (i % 100 == 0) {
             if (i % 1000 == 0)
                 printf("After %d rounds: training loss: %f, testing loss: %f.\n", i, trainloss, testloss);
             if (i > 0 && trainloss > oldtr) {
-                end = time(&end);
-                printf("Finished after %d rounds in %.2ld seconds.\n", i, end - start);
-                printf("Training loss: %f, testing loss: %f.\n", trainloss, testloss);
-                return 0;
+                if (fails > MAX_FAILS) {
+                    end = time(&end);
+                    printf("Finished after %d rounds in %.2ld seconds.\n", i, end - start);
+                    printf("Training loss: %f, testing loss: %f.\n", trainloss, testloss);
+                    return 0;
+                } else {
+                    ++fails;
+                }
             }
             oldtr = trainloss;
             oldte = testloss;
