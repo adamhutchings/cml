@@ -368,8 +368,10 @@ int cmlmodeltrain(struct cmlmodel * model, float merror) {
     for (int i = 0; ; ++i) {
         trainloss = cmlmodelgettrainloss(model);
         testloss = cmlmodelgettestloss(model);
-        if (trainloss < merror)
+        if (trainloss < merror) {
+            printf("%s\n", "Passed error threshold, adequately trained.");
             return 0;
+        }
         cmlmodellearn(model, tspeed * trainloss, ipenalty * cmlsigmoid(1/trainloss));
         if (i % ((int) (100 * delicacy)) == 0) {
             if (i % (int) (1000 * delicacy) == 0)
