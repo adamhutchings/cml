@@ -40,7 +40,7 @@ int modeltest() {
             printf("After %d rounds: training loss: %f, testing loss: %f.\n", i, trainloss, testloss);
         cmlmodellearn(&model, 0.000001 * 1.0f / trainloss);
         if (i > 100 && trainloss > oldtr) {
-            end = time(&start);
+            end = time(&end);
             printf("Finished after %d rounds in %.2ld seconds.\n", i, end - start);
             printf("Training loss: %f, testing loss: %f.\n", trainloss, testloss);
             break;
