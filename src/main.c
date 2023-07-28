@@ -24,34 +24,10 @@ int modeltest() {
     cmlmodeladdtraining(&model, trainno, tri, tro);
     cmlmodeladdtesting(&model, testno, tei, teo);
 
-    float trainloss, testloss;
-    float oldtr, oldte;
-
     /* For Iris, our goal loss is less than 0.04. */
+    cmlmodeltrain(&model);
 
     printf("%s\n", "Testing on iris dataset ...");
-
-    time_t start, end;
-
-    start = time(&start);
-
-    for (int i = 0; ; ++i) {
-        trainloss = cmlmodelgettrainloss(&model);
-        testloss = cmlmodelgettestloss(&model);
-        cmlmodellearn(&model, 0.00001 * trainloss);
-        if (i % 100 == 0) {
-            if (i % 1000 == 0)
-                printf("After %d rounds: training loss: %f, testing loss: %f.\n", i, trainloss, testloss);
-            if (i > 0 && trainloss > oldtr) {
-                end = time(&end);
-                printf("Finished after %d rounds in %.2ld seconds.\n", i, end - start);
-                printf("Training loss: %f, testing loss: %f.\n", trainloss, testloss);
-                break;
-            }
-            oldtr = trainloss;
-            oldte = testloss;
-        }
-    }
 
     /* See the actual outputs. */
 

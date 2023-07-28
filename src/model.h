@@ -39,4 +39,6 @@ float cmlmodelgettrainloss(struct cmlmodel * model);
  */
 int cmlmodellearn(struct cmlmodel * model, float learnspeed);
 
+int cmlmodeltrain(struct cmlmodel * model);
+
 #endif /* CML_MODEL_H */

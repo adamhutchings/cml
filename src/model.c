@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "mvmath.h"
 
@@ -334,6 +335,37 @@ int cmlmodellearn(struct cmlmodel * model, float learnspeed) {
         
         for (int p = 0; p < s; ++p) {
             model->net.biases[i].entries[p] -= tweaks.biases[i].entries[p] * learnspeed;
+        }
+    }
+
+    return 0;
+
+}
+
+int cmlmodeltrain(struct cmlmodel * model) {
+
+    float trainloss, testloss;
+    float oldtr, oldte;
+
+    time_t start, end;
+
+    start = time(&start);
+
+    for (int i = 0; ; ++i) {
+        trainloss = cmlmodelgettrainloss(model);
+        testloss = cmlmodelgettestloss(model);
+        cmlmodellearn(model, 0.00001 * (trainloss > 1 ? trainloss : 1));
+        if (i % 100 == 0) {
+            if (i % 1000 == 0)
+                printf("After %d rounds: training loss: %f, testing loss: %f.\n", i, trainloss, testloss);
+            if (i > 0 && trainloss > oldtr) {
+                end = time(&end);
+                printf("Finished after %d rounds in %.2ld seconds.\n", i, end - start);
+                printf("Training loss: %f, testing loss: %f.\n", trainloss, testloss);
+                return 0;
+            }
+            oldtr = trainloss;
+            oldte = testloss;
         }
     }
 
