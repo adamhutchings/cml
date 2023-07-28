@@ -250,7 +250,7 @@ int cmlmodellearn(struct cmlmodel * model, float learnspeed) {
             s = model->net.im_sizes[i];
         
         for (int p = 0; p < s; ++p) {
-            model->net.biases[i].entries[p] -= tweaks.biases[i].entries[p] * learnspeed;
+            model->net.biases[i].entries[p] -= tweaks.biases[i].entries[p] * (learnspeed / (float) model->test_no);
         }
     }
 
