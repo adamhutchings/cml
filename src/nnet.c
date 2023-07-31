@@ -84,7 +84,7 @@ int cmlnfree(struct cmlneuralnet * net) {
 float randfloat() {
     float f = ((float) rand()) / ((float) RAND_MAX);
     /* Move it from 0 ... 1 to -1 ... 1. */
-    return f + f - 1.0f;
+    return (f + f - 1.0f) / 10;
 }
 
 /* Randomly seed every matrix and bias entry between -1 and 1. */
