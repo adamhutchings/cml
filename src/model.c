@@ -1,6 +1,7 @@
 #include "model.h"
 
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -393,6 +394,11 @@ int cmlmodeltrain(struct cmlmodel * model, float merror) {
                 /* If the errors are opposite, it's time to stop training. */
                 if (olderror != ne && ne != 0 && olderror != 0) {
                     printf("%s\n", "Stopped improving. Returning ...");
+                    return 0;
+                }
+                /* If we get an NaN, return also. That's not good. */
+                if (isnan(trainloss)) {
+                    printf("%s\n", "Failed floating-point calculation.");
                     return 0;
                 }
                 if (ne == 1) {
