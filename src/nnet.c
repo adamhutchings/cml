@@ -109,7 +109,7 @@ int cmlnrandinit(struct cmlneuralnet * net) {
 
 static int applyactivation(struct cmlvector * v) {
     for (int i = 0; i < v->len; ++i) {
-        v->entries[i] = cmlsigmoid(v->entries[i]);
+        v->entries[i] = activation(v->entries[i]);
     }
     return 0;
 }

@@ -162,12 +162,12 @@ static int recursepds(struct pds * cur, struct pds * next, struct cmlneuralnet *
 
     /* D values */
     for (int i = 0; i < dk; ++i) {
-        next->dvals.entries[i] = cmlsigmoid(next->svals.entries[i]);
+        next->dvals.entries[i] = activation(next->svals.entries[i]);
     }
 
     /* D-hat values */
     for (int i = 0; i < dk; ++i) {
-        next->dhats.entries[i] = cmlsp(next->svals.entries[i]);
+        next->dhats.entries[i] = activation_derivative(next->svals.entries[i]);
     }
 
     int lsize;
@@ -378,7 +378,7 @@ int cmlmodeltrain(struct cmlmodel * model, float merror) {
             printf("%s\n", "Passed error threshold, adequately trained.");
             return 0;
         }
-        cmlmodellearn(model, tspeed * trainloss, ipenalty * cmlsigmoid(1/trainloss));
+        cmlmodellearn(model, tspeed * trainloss, ipenalty * activation(1/trainloss));
         if (i % checkin == 0) {
             if (i % prs == 0)
                 printf("After %d rounds: training loss: %f, testing loss: %f.\n", i, trainloss, testloss);

@@ -95,13 +95,10 @@ int cmlmul(struct cmlmatrix * m, struct cmlvector * v1, struct cmlvector * v2) {
 }
 
 /* Activation function. */
-float cmlsigmoid(float input) {
+float activation(float input) {
     return input < 0 ? (input * 0.1) : input;
-    return 1.0f / (1 + exp(-input));
 }
 
-float cmlsp(float input) {
+float activation_derivative(float input) {
     return input < 0 ? 0.1 : 1;
-    float s = cmlsigmoid(input);
-    return s * (1 - s);
 }

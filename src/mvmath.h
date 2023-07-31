@@ -45,7 +45,7 @@ int cmlmsentry(struct cmlmatrix * m, int i, int j, float v);
  */
 int cmlmul(struct cmlmatrix * m, struct cmlvector * v1, struct cmlvector * v2);
 
-float cmlsigmoid(float input);
-float cmlsp(float input);
+float activation(float input);
+float activation_derivative(float input);
 
 #endif /* CML_MVMATH_H */
