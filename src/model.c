@@ -310,20 +310,12 @@ static int cmlgetpdfrompoint(struct cmlmodel * model, struct cmlneuralnet * pds,
     return cmlgetpddp(&model->net, &model->trains_in[i], &model->trains_out[i], pds);
 }
 
-int cmlmodellearn(struct cmlmodel * model, float learnspeed) {
-
-    /* Every training datapoint will add its own weights to this. */
-    struct cmlneuralnet tweaks;
-    cmlninit(&tweaks, model->net.insize, model->net.outsize, model->net.layers);
-
-    for (int i = 0; i < model->train_no; ++i) {
-        cmlgetpdfrompoint(model, &tweaks, i);
-    }
+static int cmlmodelmaketweak(struct cmlmodel * model, float tweak_amount, struct cmlneuralnet * tweaks, float learnspeed) {
 
     /* Change all matrix entries */
     for (int i = 0; i < model->net.layers; ++i) {
         for (int p = 0; p < model->net.matrices[i].m * model->net.matrices[i].n; ++p) {
-            float n = -tweaks.matrices[i].entries[p] * learnspeed;
+            float n = -tweaks->matrices[i].entries[p] * learnspeed;
             model->net.matrices[i].entries[p] += n;
             model->lasts.matrices[i].entries[p] = n;
         }
@@ -339,10 +331,36 @@ int cmlmodellearn(struct cmlmodel * model, float learnspeed) {
             s = model->net.im_sizes[i];
         
         for (int p = 0; p < s; ++p) {
-            float n = -tweaks.biases[i].entries[p] * learnspeed;
+            float n = -tweaks->biases[i].entries[p] * learnspeed;
             model->net.biases[i].entries[p] += n;
             model->lasts.biases[i].entries[p] = n;
         }
+    }
+
+    return 0;
+
+}
+
+int cmlmodellearn(struct cmlmodel * model, float learnspeed) {
+
+    /* Every training datapoint will add its own weights to this. */
+    struct cmlneuralnet tweaks;
+    cmlninit(&tweaks, model->net.insize, model->net.outsize, model->net.layers);
+
+    for (int i = 0; i < model->train_no; ++i) {
+        cmlgetpdfrompoint(model, &tweaks, i);
+    }
+
+    /* Make tweaks until we stop improving, and then undo the last tweak. */
+    float loss = cmlmodelgettrainloss(model);
+    for (;;) {
+        cmlmodelmaketweak(model, 1.0f, &tweaks, learnspeed);
+        float loss2 = cmlmodelgettrainloss(model);
+        if (loss2 > loss) {
+            cmlmodelmaketweak(model, -1.0f, &tweaks, learnspeed);
+            break;
+        }
+        loss = loss2;
     }
 
     return 0;
