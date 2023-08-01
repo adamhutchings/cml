@@ -363,7 +363,7 @@ int cmlmodeltrain(struct cmlmodel * model, float merror) {
     float delicacy = 0.1f;
 
     int fails = 0, MAX_FAILS = 10;
-    float tspeed = 0.000001 / delicacy;
+    float tspeed = 0.00001 / delicacy;
     float ipenalty = 1.0f;
 
     int checkin = (int) (100 * delicacy);
