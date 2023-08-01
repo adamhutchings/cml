@@ -25,8 +25,14 @@ int iristest() {
     cmlmodeladdtraining(&model, trainno, tri, tro);
     cmlmodeladdtesting(&model, testno, tei, teo);
 
+    struct cmlhyperparams params;
+    params.iterations = 0;
+    params.learning_speed = 0.00001f;
+    params.sw = 0;
+    params.error_threshold = 0.04;
+
     /* For Iris, our goal loss is less than 0.04. */
-    cmlmodeltrain(&model, 0.04);
+    cmlmodeltrain(&model, &params);
 
     printf("%s\n", "Testing on iris dataset ...");
 
@@ -117,7 +123,7 @@ int mnisttest() {
 }
 
 int main(int argc, char ** argv) {
-    /* iristest(); */
-    mnisttest();
+    iristest();
+    /* mnisttest(); */
     return 0;
 }
