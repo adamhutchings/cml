@@ -351,7 +351,7 @@ int cmlmodellearn(struct cmlmodel * model, float learnspeed, float inertia) {
 
 }
 
-int cmlmodeltrain(struct cmlmodel * model, float merror) {
+int cmlmodeltrain(struct cmlmodel * model, struct cmlhyperparams * params) {
 
     float trainloss, testloss;
     float oldtr, oldte;
@@ -363,7 +363,7 @@ int cmlmodeltrain(struct cmlmodel * model, float merror) {
     float delicacy = 0.1f;
 
     int fails = 0, MAX_FAILS = 10;
-    float tspeed = 0.00001 / delicacy;
+    float tspeed = params->learning_speed / delicacy;
     float ipenalty = 1.0f;
 
     int checkin = (int) (100 * delicacy);
@@ -374,7 +374,7 @@ int cmlmodeltrain(struct cmlmodel * model, float merror) {
     for (int i = 0; ; ++i) {
         trainloss = cmlmodelgettrainloss(model);
         testloss = cmlmodelgettestloss(model);
-        if (trainloss < merror) {
+        if (trainloss < params->error_threshold) {
             printf("%s\n", "Passed error threshold, adequately trained.");
             return 0;
         }
