@@ -360,13 +360,11 @@ int cmlmodeltrain(struct cmlmodel * model, struct cmlhyperparams * params) {
 
     start = time(&start);
 
-    float delicacy = 0.1f;
-
     int fails = 0, MAX_FAILS = 10;
-    float tspeed = params->learning_speed / delicacy;
+    float tspeed = params->learning_speed;
     float ipenalty = 1.0f;
 
-    int checkin = (int) (100 * delicacy);
+    int checkin = 100;
     int prs = checkin * 10;
 
     int olderror = 0;
