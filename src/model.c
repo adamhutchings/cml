@@ -360,63 +360,31 @@ int cmlmodeltrain(struct cmlmodel * model, struct cmlhyperparams * params) {
 
     start = time(&start);
 
-    int fails = 0, MAX_FAILS = 10;
-    float tspeed = params->learning_speed;
-    float ipenalty = 1.0f;
+    while (1) {
 
-    int checkin = 100;
-    int prs = checkin * 10;
-
-    int olderror = 0;
-
-    for (int i = 0; ; ++i) {
         trainloss = cmlmodelgettrainloss(model);
-        testloss = cmlmodelgettestloss(model);
+        testloss  = cmlmodelgettestloss (model);
+
+        cmlmodellearn(model, params->learning_speed, 0.5);
+        ++params->iterations;
+
+        oldtr = trainloss, oldte = testloss;
+
+        if (trainloss > oldtr) {
+            printf("Stopped improving after %d rounds.\n", params->iterations);
+            break;
+        }
+
         if (trainloss < params->error_threshold) {
-            printf("%s\n", "Passed error threshold, adequately trained.");
-            return 0;
+            printf("Passed below error threshold after %d rounds.\n", params->iterations);
+            break;
         }
-        float inertia = ipenalty * trainloss;
-        if (inertia > 0.9)
-            inertia = 0.9;
-        if (inertia < 0) /* Somehow? */
-            inertia = 0;
-        cmlmodellearn(model, tspeed * trainloss, inertia);
-        if (i % checkin == 0) {
-            if (i % prs == 0)
-                printf("After %d rounds: training loss: %f, testing loss: %f.\n", i, trainloss, testloss);
-            if (i > 0) {
-                int ne;
-                if (trainloss > oldtr) {
-                    ne = 1;
-                } else if ((oldtr - trainloss) / trainloss < 0.0001) {
-                    ne = -1;
-                } else {
-                    ne = 0;
-                }
-                /* If the errors are opposite, it's time to stop training. */
-                if (olderror != ne && ne != 0 && olderror != 0) {
-                    printf("%s\n", "Stopped improving. Returning ...");
-                    return 0;
-                }
-                /* If we get an NaN, return also. That's not good. */
-                if (isnan(trainloss)) {
-                    printf("%s\n", "Failed floating-point calculation.");
-                    return 0;
-                }
-                if (ne == 1) {
-                    ipenalty = 0;
-                    tspeed *= 0.5;
-                } else if (ne == -1) {
-                    ipenalty = (ipenalty + 1) * 0.5;
-                    tspeed *= 1.25;
-                }
-                olderror = ne;
-            }
-            oldtr = trainloss;
-            oldte = testloss;
-        }
+
     }
+
+    end = time(&end);
+
+    printf("Returning after %.3f seconds.\n", difftime(end, start));
 
     return 0;
 
