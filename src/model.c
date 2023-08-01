@@ -172,9 +172,9 @@ static int recursepds(struct pds * cur, struct pds * next, struct cmlneuralnet *
 
     int lsize;
 
-    if (ln == sinfo->layers + 1)
+    if (ln == sinfo->layers)
         lsize = sinfo->outsize;
-    else if (ln == 1)
+    else if (ln == 0)
         lsize = sinfo->insize;
     else
         lsize = sinfo->im_sizes[ln - 1];
