@@ -29,9 +29,9 @@ int iristest() {
     params.iterations = 0;
     params.learning_speed = 0.0001f;
     params.sw = 0;
-    params.error_threshold = 0.04;
+    params.error_threshold = 0.01;
 
-    /* For Iris, our goal loss is less than 0.04. */
+    /* For Iris, our goal loss is less than the error threshold. */
     cmlmodeltrain(&model, &params);
 
     printf("%s\n", "Testing on iris dataset ...");
