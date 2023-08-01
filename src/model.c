@@ -378,7 +378,12 @@ int cmlmodeltrain(struct cmlmodel * model, float merror) {
             printf("%s\n", "Passed error threshold, adequately trained.");
             return 0;
         }
-        cmlmodellearn(model, tspeed * trainloss, ipenalty * trainloss);
+        float inertia = ipenalty * trainloss;
+        if (inertia > 0.9)
+            inertia = 0.9;
+        if (inertia < 0) /* Somehow? */
+            inertia = 0;
+        cmlmodellearn(model, tspeed * trainloss, inertia);
         if (i % checkin == 0) {
             if (i % prs == 0)
                 printf("After %d rounds: training loss: %f, testing loss: %f.\n", i, trainloss, testloss);
