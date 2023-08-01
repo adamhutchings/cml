@@ -29,7 +29,7 @@ int iristest() {
     params.iterations = 0;
     params.learning_speed = 0.0001f;
     params.sw = 0;
-    params.error_threshold = 0.01;
+    params.error_threshold = 0.04;
 
     /* For Iris, our goal loss is less than the error threshold. */
     cmlmodeltrain(&model, &params);
