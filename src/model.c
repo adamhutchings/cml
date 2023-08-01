@@ -13,7 +13,7 @@ int cmlmodelinit(struct cmlmodel * model, int insize, int outsize, int layers) {
     assert(model);
     cmlninit(&model->net, insize, outsize, layers);
     cmlninit(&model->lasts, insize, outsize, layers);
-    cmlnrandinit(&model->net);
+    cmlnrandinit(&model->net, 0.1f);
     return 0;
 }
 
@@ -360,22 +360,24 @@ int cmlmodeltrain(struct cmlmodel * model, struct cmlhyperparams * params) {
 
     start = time(&start);
 
+    int i = 0;
+
     while (1) {
 
         trainloss = cmlmodelgettrainloss(model);
         testloss  = cmlmodelgettestloss (model);
 
         cmlmodellearn(model, params->learning_speed, 0.5);
-        ++params->iterations;
+        ++i;
 
-        if (params->iterations % 100 == 0) {
-            printf("After %d rounds: training error %.6f, testing error %.6f.\n", params->iterations, trainloss, testloss);
+        if (i % 100 == 0) {
+            printf("After %d rounds: training error %.6f, testing error %.6f.\n", i, trainloss, testloss);
         }
 
         oldtr = trainloss, oldte = testloss;
 
         if (trainloss > oldtr) {
-            printf("Stopped improving after %d rounds.\n", params->iterations);
+            printf("Stopped improving after %d rounds.\n", i);
             break;
         }
 
@@ -387,7 +389,7 @@ int cmlmodeltrain(struct cmlmodel * model, struct cmlhyperparams * params) {
     }
 
     end = time(&end);
-
+    params->iterations = i;
     printf("Returning after %.3f seconds.\n", difftime(end, start));
 
     return 0;

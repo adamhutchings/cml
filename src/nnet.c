@@ -81,14 +81,14 @@ int cmlnfree(struct cmlneuralnet * net) {
 }
 
 /* Random float between -1 and 1. */
-float randfloat() {
+float randfloat(float variance) {
     float f = ((float) rand()) / ((float) RAND_MAX);
     /* Move it from 0 ... 1 to -1 ... 1. */
-    return (f + f - 1.0f) / 10;
+    return (f + f - 1.0f) * variance;
 }
 
 /* Randomly seed every matrix and bias entry between -1 and 1. */
-int cmlnrandinit(struct cmlneuralnet * net) {
+int cmlnrandinit(struct cmlneuralnet * net, float variance) {
 
     time_t t;
     srand((unsigned) time(&t));
@@ -96,10 +96,10 @@ int cmlnrandinit(struct cmlneuralnet * net) {
     for (int i = 0; i < net->layers; ++i) {
         /* Matrices */
         for (int j = 0; j < net->matrices[i].m * net->matrices[i].n; ++j) {
-            net->matrices[i].entries[j] = randfloat();
+            net->matrices[i].entries[j] = randfloat(variance);
         }
         for (int j = 0; j < net->biases[i].len; ++j) {
-            net->biases[i].entries[j] = randfloat();
+            net->biases[i].entries[j] = randfloat(variance);
         }
     }
 
