@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import time
 
 s = 0
 runs = 0
@@ -21,6 +22,8 @@ print(f'|', end='', flush=True)
 
 ps = 0
 
+start = time.time()
+
 for i in range(runs):
 
     process = subprocess.Popen(["bash", "scripts/drun.sh"], stdout=subprocess.PIPE)
@@ -32,5 +35,12 @@ for i in range(runs):
         print(f'-', end='', flush=True)
         ps += 1
 
+end = time.time()
+
 print(f'{"-" * (pbarlen - ps)}|')
 print(f'Pass rate: {s} out of {runs} tests.')
+
+ttime = round(end - start, 3)
+
+print(f'Total time taken: {ttime} seconds.')
+print(f'Average time taken to train one model: {ttime / runs} seconds.')
