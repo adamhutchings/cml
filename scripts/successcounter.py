@@ -43,4 +43,4 @@ print(f'Pass rate: {s} out of {runs} tests.')
 ttime = round(end - start, 3)
 
 print(f'Total time taken: {ttime} seconds.')
-print(f'Average time taken to train one model: {ttime / runs} seconds.')
+print(f'Average time taken to train one model: {round(ttime / runs, 3)} seconds.')
