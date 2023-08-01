@@ -8,9 +8,9 @@
 #include "model.h"
 
 /**
- * Test the basics of a model.
+ * Test the IRIS dataset.
  */
-int modeltest() {
+int iristest() {
 
     int trainno, testno;
     struct cmlvector * tri, * tro, * tei, * teo;
@@ -49,6 +49,6 @@ int modeltest() {
 }
 
 int main(int argc, char ** argv) {
-    modeltest();
+    iristest();
     return 0;
 }
