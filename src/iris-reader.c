@@ -73,7 +73,7 @@ int cmlreadiris(const char * filepath, struct cmlvector ** ins, struct cmlvector
 
 }
 
-int cmlfreedata(struct cmlvector * ins, struct cmlvector * outs, int no) {
+int cmlfreeiris(struct cmlvector * ins, struct cmlvector * outs, int no) {
     assert(ins);
     assert(outs);
     for (int i = 0; i < no; ++i) {

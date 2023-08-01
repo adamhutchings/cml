@@ -41,8 +41,8 @@ int iristest() {
 
     cmlmodelfree(&model);
 
-    cmlfreedata(tri, tro, trainno);
-    cmlfreedata(tei, teo, testno);
+    cmlfreeiris(tri, tro, trainno);
+    cmlfreeiris(tei, teo, testno);
 
     return 0;
 
