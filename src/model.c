@@ -368,6 +368,10 @@ int cmlmodeltrain(struct cmlmodel * model, struct cmlhyperparams * params) {
         cmlmodellearn(model, params->learning_speed, 0.5);
         ++params->iterations;
 
+        if (params->iterations % 100 == 0) {
+            printf("After %d rounds: training error %.6f, testing error %.6f.\n", params->iterations, trainloss, testloss);
+        }
+
         oldtr = trainloss, oldte = testloss;
 
         if (trainloss > oldtr) {
