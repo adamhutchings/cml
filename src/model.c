@@ -310,7 +310,7 @@ static int cmlgetpdfrompoint(struct cmlmodel * model, struct cmlneuralnet * pds,
     return cmlgetpddp(&model->net, &model->trains_in[i], &model->trains_out[i], pds);
 }
 
-int cmlmodellearn(struct cmlmodel * model, float learnspeed, float inertia) {
+int cmlmodellearn(struct cmlmodel * model, float learnspeed) {
 
     /* Every training datapoint will add its own weights to this. */
     struct cmlneuralnet tweaks;
@@ -324,9 +324,8 @@ int cmlmodellearn(struct cmlmodel * model, float learnspeed, float inertia) {
     for (int i = 0; i < model->net.layers; ++i) {
         for (int p = 0; p < model->net.matrices[i].m * model->net.matrices[i].n; ++p) {
             float n = -tweaks.matrices[i].entries[p] * learnspeed;
-            n = n * (1 - inertia) - model->lasts.matrices[i].entries[p] * inertia;
             model->net.matrices[i].entries[p] += n;
-            model->lasts.matrices[i].entries[p] = -n;
+            model->lasts.matrices[i].entries[p] = n;
         }
     }
 
@@ -341,9 +340,8 @@ int cmlmodellearn(struct cmlmodel * model, float learnspeed, float inertia) {
         
         for (int p = 0; p < s; ++p) {
             float n = -tweaks.biases[i].entries[p] * learnspeed;
-            n = n * (1 - inertia) - model->lasts.biases[i].entries[p] * inertia;
-            model->net.biases[i].entries[p] -= n;
-            model->lasts.biases[i].entries[p] = -n;
+            model->net.biases[i].entries[p] += n;
+            model->lasts.biases[i].entries[p] = n;
         }
     }
 
@@ -367,7 +365,7 @@ int cmlmodeltrain(struct cmlmodel * model, struct cmlhyperparams * params) {
         trainloss = cmlmodelgettrainloss(model);
         testloss  = cmlmodelgettestloss (model);
 
-        cmlmodellearn(model, params->learning_speed, 0.5);
+        cmlmodellearn(model, params->learning_speed);
         ++i;
 
         if (i % 100 == 0) {

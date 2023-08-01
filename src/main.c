@@ -104,7 +104,7 @@ int mnisttest() {
     float olderror, newerror;
 
     for (int i = 0; ; ++i) {
-        newerror = cmlmodellearn(&model, 0.001, 0.5);
+        newerror = cmlmodellearn(&model, 0.001);
         printf("Finished round %d\n", i);
         printf("Current error: %f\n", cmlmodelgettestloss(&model));
         printf("Current accuracy: %.3f%%\n", mnist_accuracy(&model) * 100);
