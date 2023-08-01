@@ -1,0 +1,240 @@
+\documentclass{article}
+\usepackage{amsmath}
+
+\title{Backpropagation Calculations}
+\author{Adam Hutchings}
+\date{July 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+\subsection{Classical Neural Network}
+
+A classical neural network is a function that turns input vectors into output vectors by repeating a process:
+
+\begin{itemize}
+
+\item Multiply the vector by a matrix.
+
+\item Add a "bias vector".
+
+\item Feed every element of the vector through an "activation function".
+
+\end{itemize}
+
+To see this in practice, suppose we have our input vector $i$ of length $n,$ our matrix $A,$ our activation function $\sigma,$ and our bias vector $B$ of length $m,$ all producing our output vector $o:$
+
+$$i = \begin{bmatrix} i_1 \\ \vdots \\ i_n \end{bmatrix}, A = \begin{bmatrix} A_{1,1} && \cdots && A_{1,n} \\ \vdots && && \vdots \\ A_{m,1} && \cdots && A_{m,n} \end{bmatrix}, B = \begin{bmatrix} b_1 \\ \vdots \\ b_m \end{bmatrix}.$$
+
+In that case, we have the relation
+
+\begin{equation}
+\label{slayer}
+o_k = \sigma \biggr ( (\sum_{j=1}^n A_{k,j} \cdot i_j ) + b_k \biggr ).
+\end{equation}
+
+We are given a set of input vectors $I_1 ... I_i$ and a set of expected output vectors $E_1 ... E_i.$ In our neural network, each input vector $I_j$ produces an output vector $O_j,$ and we calculate the inaccuracy (or "loss") of the network by finding the sum of squares of distances between each actual output vector $O_j$ and each target output vector $E_j.$ Representing the length of the output as $m$ and the $k$-th element of the $j$-th vector as $O_{j,k}$ or $E_{j,k}:$
+
+\begin{equation}
+\label{loss}
+L = \sum_{j=1}^i (O_j - E_j)^2 = \sum_{j=1}^i \sum_{k=1}^m (O_{j,k} - E_{j,k})^2.
+\end{equation}
+
+For a neural network to "learn", we aim to adjust the parameters (the entries in each matrix and each bias vector) to minimize this loss.
+
+\subsection{Gradient Descent}
+
+To minimize the loss function, we would like to find the partial derivative of the loss with respect to each parameter. Considering the loss function a function of every parameter in the network, we can find the gradient of this function and descend it, progressively working towards a local (hopefully global) minimum.
+
+It is possible to approximate this partial derivative by calculating the loss $L'$ of a set of parameters where the chosen parameter is incremented by $\epsilon,$ and then use the approximation
+
+\begin{equation}
+\label{epsapprox}
+\frac{\partial L}{\partial p} \approx \frac 1 \epsilon \cdot (L' - L).
+\end{equation}
+
+However, this calculation is inefficient, and we would like to use the technique of "backpropagation", or actually working out the partial derivative in an efficient and recursive manner. This is nothing new, but I am using this document to walk myself through the process and figure out the calculations in a manner that makes sense to me.
+
+\subsection{The Goal}
+
+The ultimate goal: efficiently calculate $\frac{\partial L}{\partial p}$ for all parameters $p.$
+
+\section{The Calculation}
+
+\subsection{The Model}
+
+For now, we will consider a simplified model which only has one input vector and one expected output vector, because if we have a total loss function $L$ which is the sum of many smaller ones $L_1, L_2, \cdots L_n,$ we can just write
+
+\begin{equation}
+\label{totalloss}
+\frac{\partial L}{\partial p} = \frac{\partial L_1}{\partial p} + \frac{\partial L_2}{\partial p} + \cdots + \frac{\partial L_n}{\partial p}.
+\end{equation}
+
+\subsection{Notation}
+
+We will define some terms for our neural network:
+
+\begin{itemize}
+
+\item The neural network has $l$ layers (or $l$ matrices and bias vectors, the output of each of which is the input to the next).
+
+\item The $k$-th layer accepts a vector of size $d_k$ and produces a vector of size $d_{k-1}.$ (Notice that the neural network itself accepts vectors of length $d_0$ and produces vectors of size $d_{l+1}.$)
+
+\item The $k$-th matrix has entry $A_{k,m,n}$ in the $m$-th row and the $n$-th column.
+
+\item The $k$-th bias vector has entry $B_{k,x}$ in the $x$-th position.
+
+\item The $x$-th entry in the data after $k$ layers is $D_{k,x}.$ (So $D_0$ is the input vector and $D_l$ is the output vector.)
+
+\item The activation function will be written $\sigma(x),$ and its derivative will be written $\sigma'(x).$
+
+\item The expected output vector will be written $E_k,$ and its $x$-th entry $E_{k,x}.$
+
+\end{itemize}
+
+\subsection{Master Formula}
+
+Because we have the relation laid out in equation \ref{loss}, we have for our single-vector case that
+
+\begin{equation}
+\label{svloss}
+L = \sum_{x=1}^{d_{l+1}} (O_x - E_x)^2,
+\end{equation}
+
+and so
+
+\begin{equation}
+\frac{\partial L}{\partial p} = \sum_{x=1}^{d_{l+1}} \frac{\partial ((E_x - O_x)^2)}{\partial p} = \sum_{x=1}^{d_{l+1}} 2(O_x - E_x) \cdot \frac{\partial{E_x}}{\partial p}.
+\end{equation}
+
+Rewriting it using our notation from the previous section, we have that
+
+\begin{equation}
+\label{pdloss}
+\frac{\partial L}{\partial p} = \sum_{x=1}^{d_{l+1}} 2(D_{l,x} - E_x) \cdot \frac{\partial{D_{l,x}}}{\partial p}.
+\end{equation}
+
+Therefore, we will calculate $\partial D_{l,x}/\partial p$ for any parameter $p$ and position $k.$
+
+Rewriting equation \ref{slayer} in terms of our new notation,
+
+\begin{equation}
+\label{pslayer}
+D_{k,x} = \sigma(B_{k,x} + \sum_{j=1}^n A_{k,x,j} \cdot D_{k-1,j}).
+\end{equation}
+
+We will introduce one more term:
+
+\begin{equation}
+\label{dhat}
+\hat D_{k,x} = \sigma'(B_{k,x} + \sum_{j=1}^n A_{k,x,j} \cdot D_{k-1,j}).
+\end{equation}
+
+Now the partial derivative with respect to a parameter $p$ is
+
+\begin{equation}
+\label{pdentry}
+\frac{\partial D_{k,x}}{\partial p} = \hat D_{k,x} \cdot (\frac{\partial B_{k,x}}{\partial p} + \sum_{j=1}^n \biggr ( \frac{\partial A_{k,x,j}}{\partial p} \cdot D_{k-1,j} + A_{k,x,j} \cdot \frac{\partial D_{k-1,j}}{\partial p} \biggr ) ).
+\end{equation}
+
+However, notice that of the three partial derivative terms in the equation, if one is nonzero the other two must be zero, so we have three cases which we will investigate individually.
+
+\subsection{Bias Derivative}
+
+If we are taking the partial derivative of $D_{k,x}$ with respect to a bias vector $B_{k,y}$ in the same layer. In that case, equation \ref{pdentry} reduces to
+
+\begin{equation}
+\frac{\partial D_{k,x}}{\partial B_{k,y}} = \hat D_{k,x} \cdot \frac{\partial B_{k,x}}{\partial B_{k,y}}.
+\end{equation}
+
+Notice that the term $\frac{\partial B_{k,x}}{\partial p}$ is 0 if $y \neq x$ and 1 if $y = x.$
+
+To sum up:
+
+\begin{itemize}
+
+\item $\partial D_{k,x} / \partial B_{k,y} = 0$ when $x \neq y,$
+
+\item $\partial D_{k,x} / \partial B_{k,y} = \hat D_{k,x}$ when $x = y.$
+
+\end{itemize}
+
+\subsection{Matrix Derivative}
+
+If we are taking the partial derivative with respect to a matrix entry $A_{k,m,n},$ then we have
+
+\begin{equation}
+\frac{\partial D_{k,x}}{\partial A_{k,m,n}} = \hat D_{k,x} \cdot \sum_{j=1}^n \frac{\partial A_{k,x,j}}{\partial A_{k,m,n}} \cdot D_{k-1,j}.
+\end{equation}
+
+Of course, the partial derivative term will equal 0 unless $x = m$ and $j = n,$ in which case it will equal 1. So if $x \neq m,$ then the entire expression equals zero. Otherwise, only the term where $j = n$ matters, in which case we have
+
+$$\frac{\partial D_{k,x}}{\partial A_{k,x,n}} = \hat D_{k,x} \cdot \frac{\partial A_{k,x,n}}{\partial A_{k,x,n}} \cdot D_{k-1,n} = \hat D_{k, x} \cdot D_{k-1, n}.$$
+
+To sum up:
+
+\begin{itemize}
+
+\item $\partial D_{k,x} / \partial A_{k,m,n} = 0$ when $x \neq m,$
+
+\item $\partial D_{k,x} / \partial A_{k,m,n} = \hat D_{k, x} \cdot D_{k-1, n}$ when $x = m.$
+
+\end{itemize}
+
+\subsection{Derivatives from Other Layers}
+
+Finally, if the last term is nonzero, we have a change in a parameter from a layer $l < k.$ Then,
+
+\begin{equation}
+\frac{\partial D_{k,x}}{\partial p} = \hat D_{k,x} \cdot \sum_{j=1}^n ( A_{k,x,j} \cdot \frac{\partial D_{k-1,j}}{\partial p} ).
+\end{equation}
+
+Now, trivially, any matrix entry or bias from a layer $l > k$ cannot affect the term $D_{k,x}$ at all, so those will all be zero.
+
+\section{Efficient Gradient Computation Procedure}
+
+\subsection{General Idea}
+
+We will calculate the partial derivatives $\partial D_{k,x} / \partial p$ for each parameter, as $k$ increases from $0$ to $l.$ (Note that when we are calculating the partial derivatives for a given layer $k,$ we only need the derivatives for the layer $k - 1,$ so all previous partial derivatives can be scrapped.)
+
+Just as a quick note: we will take a term from equation \ref{pslayer} and give it a name:
+
+\begin{equation}
+\label{sname}
+S_{k,x} = B_{k,x} + \sum_{j=1}^n A_{k,x,j} \cdot D_{k-1,j}.
+\end{equation}
+
+Therefore, we can write
+
+$$D_{k,x} = \sigma(S_{k,x}), \,\,\, \hat D_{k,x} = \sigma'(S_{k,x}).$$
+
+\subsection{Calculation Procedure}
+
+We will use a recursive procedure to generate the partial derivatives and values of $S, D,$ and $\hat D$ from previous layers' values. To start, we calculate the values for layer 0:
+
+\begin{itemize}
+
+\item $S$ and $\hat D$ are not defined, so we will leave them as 0.
+
+\item $D$ will be the input data.
+
+\end{itemize}
+
+Then, given the values for a layer $k,$ we can calculate them for a layer $k+1:$
+
+\begin{itemize}
+
+\item Calculate $S$ using equation \ref{sname}.
+
+\item Calculate $D$ and $\hat D$ using $S.$
+
+\item Calculate the partial derivatives for the layer using the formulas in Sections 2.4, 2.5, and 2.6.
+
+\end{itemize}
+
+Finally, we calculate the partial derivative of the loss function from each parameter using equation \ref{pdloss}.
+
+\end{document}
