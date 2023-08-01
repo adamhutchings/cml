@@ -5,6 +5,7 @@
 
 #include "iris-reader.h"
 #include "nnet.h"
+#include "mnist-reader.h"
 #include "model.h"
 
 /**
@@ -48,7 +49,75 @@ int iristest() {
 
 }
 
+/* Get the largest value in an array. */
+int array_highest(float * arr, int sz) {
+    int h = -1;
+    float v = -1000;
+    for (int i = 0; i < sz; ++i) {
+        if (arr[i] > v) {
+            v = arr[i];
+            h = i;
+        }
+    }
+    return h;
+}
+
+/* Get the accuracy from MNIST data by seeing how well it predicts a number. */
+float mnist_accuracy(struct cmlmodel * model) {
+    int correct = 0;
+    struct cmlvector outbuf;
+    for (int i = 0; i < 100; ++i) {
+        cmlnapp(&model->net, &model->tests_in[i], &outbuf);
+        if (array_highest(outbuf.entries, MNIST_OUTPUT_SIZE) == array_highest(model->tests_out[i].entries, MNIST_OUTPUT_SIZE))
+            ++correct;
+    }
+    return (float) correct / 100;
+}
+
+int mnisttest() {
+
+    int trainno, testno;
+    struct cmlvector * tri, * tro, * tei, * teo;
+    struct cmlmodel model;
+
+    printf("%s\n", "Initializing model ...");
+
+    cmlmodelinit(&model, MNIST_INPUT_SIZE, MNIST_OUTPUT_SIZE, 2);
+
+    printf("%s\n", "Reading training data ...");
+    cmlreadmnist("data/mnist/mnisttraining.csv", &tri, &tro, &trainno);
+    printf("%s\n", "Reading testing data ...");
+    cmlreadmnist("data/mnist/mnisttesting.csv", &tei, &teo, &testno);
+
+    cmlmodeladdtraining(&model, trainno, tri, tro);
+    cmlmodeladdtesting(&model, testno, tei, teo);
+
+    printf("Starting error: %f\n", cmlmodelgettestloss(&model));
+    printf("Starting accuracy: %.3f%%\n", mnist_accuracy(&model) * 100);
+
+    float olderror, newerror;
+
+    for (int i = 0; ; ++i) {
+        newerror = cmlmodellearn(&model, 0.001, 0.5);
+        printf("Finished round %d\n", i);
+        printf("Current error: %f\n", cmlmodelgettestloss(&model));
+        printf("Current accuracy: %.3f%%\n", mnist_accuracy(&model) * 100);
+        if (i > 0 && newerror > olderror)
+            break;
+        olderror = newerror;
+    }
+
+    cmlmodelfree(&model);
+
+    cmlfreemnist(tri, tro, trainno);
+    cmlfreemnist(tei, teo, testno);
+
+    return 0;
+
+}
+
 int main(int argc, char ** argv) {
-    iristest();
+    /* iristest(); */
+    mnisttest();
     return 0;
 }
