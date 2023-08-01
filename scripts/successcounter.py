@@ -1,7 +1,15 @@
 import subprocess
+import sys
 
 s = 0
-runs = 100
+runs = 0
+try:
+    runs = int(sys.argv[1])
+except IndexError:
+    runs = 100
+except ValueError:
+    print(f'Argument {sys.argv[1]} was not a valid number of runs.')
+    sys.exit()
 
 for i in range(runs):
 
@@ -12,4 +20,4 @@ for i in range(runs):
 
     print(f'Finished run {i + 1} of {runs}.')
 
-print(f'Success rate: {round(s/(runs/100), 2)}%.')
+print(f'Pass rate: {s} out of {runs} tests.')
