@@ -27,7 +27,7 @@ int iristest() {
 
     struct cmlhyperparams params;
     params.iterations = 0;
-    params.learning_speed = 0.0001f;
+    params.learning_speed = 0.00001f;
     params.sw = 0;
     params.error_threshold = 0.04;
     params.training_max = 0;
