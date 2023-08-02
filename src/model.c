@@ -416,7 +416,7 @@ int cmlmodeltrain(struct cmlmodel * model, struct cmlhyperparams * params) {
         } */
 
         if (trainloss < params->error_threshold) {
-            printf("Passed below error threshold after %d rounds.\n", params->iterations);
+            printf("Passed below error threshold after %d rounds.\n", i);
             break;
         }
 
