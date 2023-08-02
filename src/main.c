@@ -72,12 +72,12 @@ int array_highest(float * arr, int sz) {
 float mnist_accuracy(struct cmlmodel * model) {
     int correct = 0;
     struct cmlvector outbuf;
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < model->test_no; ++i) {
         cmlnapp(&model->net, &model->tests_in[i], &outbuf);
         if (array_highest(outbuf.entries, MNIST_OUTPUT_SIZE) == array_highest(model->tests_out[i].entries, MNIST_OUTPUT_SIZE))
             ++correct;
     }
-    return (float) correct / 100;
+    return (float) correct / model->test_no;
 }
 
 int mnisttest() {
@@ -98,20 +98,20 @@ int mnisttest() {
     cmlmodeladdtraining(&model, trainno, tri, tro);
     cmlmodeladdtesting(&model, testno, tei, teo);
 
+    struct cmlhyperparams params;
+    params.error_threshold = 0;
+    params.iterations = 0;
+    params.learning_speed = 0.0001;
+    params.sw = 1;
+    params.sw_size = 100;
+
     printf("Starting error: %f\n", cmlmodelgettestloss(&model));
     printf("Starting accuracy: %.3f%%\n", mnist_accuracy(&model) * 100);
 
-    float olderror, newerror;
+    cmlmodeltrain(&model, &params);
 
-    for (int i = 0; ; ++i) {
-        newerror = cmlmodellearn(&model, 0.001);
-        printf("Finished round %d\n", i);
-        printf("Current error: %f\n", cmlmodelgettestloss(&model));
-        printf("Current accuracy: %.3f%%\n", mnist_accuracy(&model) * 100);
-        if (i > 0 && newerror > olderror)
-            break;
-        olderror = newerror;
-    }
+    printf("Ending error: %f\n", cmlmodelgettestloss(&model));
+    printf("Ending accuracy: %.3f%%\n", mnist_accuracy(&model) * 100);
 
     cmlmodelfree(&model);
 
@@ -123,7 +123,7 @@ int mnisttest() {
 }
 
 int main(int argc, char ** argv) {
-    iristest();
-    /* mnisttest(); */
+    /* iristest(); */
+    mnisttest();
     return 0;
 }

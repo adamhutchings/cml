@@ -70,30 +70,41 @@ static float sqdistance(struct cmlvector * v1, struct cmlvector * v2) {
     return total;
 }
 
-float cmlmodelgettestloss(struct cmlmodel * model) {
+
+static float cmlmodelgettestloss_r(struct cmlmodel * model, int ss, int es) {
     assert(model);
     struct cmlvector output_buf;
     cmlvinit(&output_buf, model->net.insize);
     float loss = 0;
-    for (int i = 0; i < model->test_no; ++i) {
+    for (int j = ss; j < es; ++j) {
+        int i = j % model->test_no;
         cmlnapp(&model->net, &model->tests_in[i], &output_buf);
         loss += sqdistance(&output_buf, &model->tests_out[i]);
         cmlvfree(&output_buf);
     }
-    return loss / model->test_no;
+    return loss / (es - ss);
 }
 
-float cmlmodelgettrainloss(struct cmlmodel * model) {
+static float cmlmodelgettrainloss_r(struct cmlmodel * model, int ss, int es) {
     assert(model);
     struct cmlvector output_buf;
     cmlvinit(&output_buf, model->net.insize);
     float loss = 0;
-    for (int i = 0; i < model->train_no; ++i) {
+    for (int j = ss; j < es; ++j) {
+        int i = j % model->train_no;
         cmlnapp(&model->net, &model->trains_in[i], &output_buf);
         loss += sqdistance(&output_buf, &model->trains_out[i]);
         cmlvfree(&output_buf);
     }
-    return loss / model->train_no;
+    return loss / (es - ss);
+}
+
+float cmlmodelgettestloss(struct cmlmodel * model) {
+    return cmlmodelgettestloss_r(model, 0, model->test_no);
+}
+
+float cmlmodelgettrainloss(struct cmlmodel * model) {
+    return cmlmodelgettrainloss_r(model, 0, model->train_no);
 }
 
 /* Stores the partial derivatives, S, D, and D-hat values for a layer. */
@@ -341,27 +352,31 @@ static int cmlmodelmaketweak(struct cmlmodel * model, float tweak_amount, struct
 
 }
 
-int cmlmodellearn(struct cmlmodel * model, float learnspeed) {
+int cmlmodellearn(struct cmlmodel * model, float learnspeed, int ss, int es) {
 
     /* Every training datapoint will add its own weights to this. */
     struct cmlneuralnet tweaks;
     cmlninit(&tweaks, model->net.insize, model->net.outsize, model->net.layers);
 
-    for (int i = 0; i < model->train_no; ++i) {
-        cmlgetpdfrompoint(model, &tweaks, i);
+    for (int i = ss; i < es; ++i) {
+        cmlgetpdfrompoint(model, &tweaks, i % model->train_no);
     }
+
+    printf("%s\n", "Done with calculating gradient. Descending ...");
 
     /* Make tweaks until we stop improving, and then undo the last tweak. */
     float loss = cmlmodelgettrainloss(model);
     for (;;) {
         cmlmodelmaketweak(model, 1.0f, &tweaks, learnspeed);
-        float loss2 = cmlmodelgettrainloss(model);
+        float loss2 = cmlmodelgettrainloss_r(model, ss, es);
         if (loss2 > loss) {
             cmlmodelmaketweak(model, -1.0f, &tweaks, learnspeed);
             break;
         }
         loss = loss2;
     }
+
+    printf("%s\n", "Finished a round of learning.");
 
     return 0;
 
@@ -376,26 +391,32 @@ int cmlmodeltrain(struct cmlmodel * model, struct cmlhyperparams * params) {
 
     start = time(&start);
 
-    int i = 0;
+    int i = 0, ss, es;
 
     while (1) {
 
-        trainloss = cmlmodelgettrainloss(model);
-        testloss  = cmlmodelgettestloss (model);
+        if (params->sw) {
+            ss = i * params->sw_size;
+            es = ss + params->sw_size;
+        } else {
+            ss = 0;
+            es = model->train_no;
+        }
 
-        cmlmodellearn(model, params->learning_speed);
+        trainloss = cmlmodelgettrainloss_r(model, ss, es);
+        testloss  = cmlmodelgettestloss_r (model, ss, es);
+
+        cmlmodellearn(model, params->learning_speed, ss, es);
         ++i;
 
-        if (i % 100 == 0) {
-            printf("After %d rounds: training error %.6f, testing error %.6f.\n", i, trainloss, testloss);
-        }
+        printf("After %d rounds: training error %.6f, testing error %.6f.\n", i, trainloss, testloss);
 
         oldtr = trainloss, oldte = testloss;
 
-        if (trainloss > oldtr) {
+        /* if (i > 0 && (oldtr - trainloss) / trainloss < 0.001) {
             printf("Stopped improving after %d rounds.\n", i);
             break;
-        }
+        } */
 
         if (trainloss < params->error_threshold) {
             printf("Passed below error threshold after %d rounds.\n", params->iterations);
