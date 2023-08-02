@@ -362,8 +362,6 @@ int cmlmodellearn(struct cmlmodel * model, float learnspeed, int ss, int es) {
         cmlgetpdfrompoint(model, &tweaks, i % model->train_no);
     }
 
-    printf("%s\n", "Done with calculating gradient. Descending ...");
-
     /* Make tweaks until we stop improving, and then undo the last tweak. */
     float loss = cmlmodelgettrainloss(model);
     for (;;) {
@@ -375,8 +373,6 @@ int cmlmodellearn(struct cmlmodel * model, float learnspeed, int ss, int es) {
         }
         loss = loss2;
     }
-
-    printf("%s\n", "Finished a round of learning.");
 
     return 0;
 
