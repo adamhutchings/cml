@@ -42,6 +42,12 @@ struct cmlhyperparams {
     /* How far down we need to get. */
     float error_threshold;
 
+    /* How many rounds of training to do. Set to 0 for indefinite. */
+    int training_max;
+
+    /* How many rounds to print a status update after. */
+    int status_rarity;
+
 };
 
 int cmlmodelinit(struct cmlmodel * model, int insize, int outsize, int layers);

@@ -393,7 +393,7 @@ int cmlmodeltrain(struct cmlmodel * model, struct cmlhyperparams * params) {
 
     int i = 0, ss, es;
 
-    while (1) {
+    while (params->training_max != 0 ? i < params->training_max : 1) {
 
         if (params->sw) {
             ss = i * params->sw_size;
@@ -409,7 +409,8 @@ int cmlmodeltrain(struct cmlmodel * model, struct cmlhyperparams * params) {
         cmlmodellearn(model, params->learning_speed, ss, es);
         ++i;
 
-        printf("After %d rounds: training error %.6f, testing error %.6f.\n", i, trainloss, testloss);
+        if (i % params->status_rarity == 0)
+            printf("After %d rounds: training error %.6f, testing error %.6f.\n", i, trainloss, testloss);
 
         oldtr = trainloss, oldte = testloss;
 
