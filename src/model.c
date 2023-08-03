@@ -364,13 +364,17 @@ int cmlmodellearn(struct cmlmodel * model, float learnspeed, int ss, int es) {
 
     /* Make tweaks until we stop improving, and then undo the last tweak. */
     float loss = cmlmodelgettrainloss(model);
+    int first = 0;
     for (;;) {
         cmlmodelmaketweak(model, 1.0f, &tweaks, learnspeed);
         float loss2 = cmlmodelgettrainloss_r(model, ss, es);
         if (loss2 > loss) {
             cmlmodelmaketweak(model, -1.0f, &tweaks, learnspeed);
+            if (!first)
+                return 1;
             break;
         }
+        first = 1;
         loss = loss2;
     }
 
@@ -389,6 +393,8 @@ int cmlmodeltrain(struct cmlmodel * model, struct cmlhyperparams * params) {
 
     int i = 0, ss, es;
 
+    float sp = params->learning_speed;
+
     while (params->training_max != 0 ? i < params->training_max : 1) {
 
         if (params->sw) {
@@ -402,7 +408,9 @@ int cmlmodeltrain(struct cmlmodel * model, struct cmlhyperparams * params) {
         trainloss = cmlmodelgettrainloss_r(model, ss, es);
         testloss  = cmlmodelgettestloss_r (model, ss, es);
 
-        cmlmodellearn(model, params->learning_speed, ss, es);
+        int slowdown = cmlmodellearn(model, sp, ss, es);
+        if (slowdown)
+            sp /= 2;
         ++i;
 
         if (i % params->status_rarity == 0)
