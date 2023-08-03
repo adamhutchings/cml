@@ -34,6 +34,9 @@ struct cmlneuralnet {
  */
 int cmlninit(struct cmlneuralnet * net, int insize, int outsize, int layers);
 
+/**
+ * Make the neural nets and bias vectors.
+ */
 int cmlnmakenets(struct cmlneuralnet * net);
 
 /**
