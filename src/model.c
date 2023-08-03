@@ -12,13 +12,22 @@
 int cmlmodelinit(struct cmlmodel * model, int insize, int outsize, int layers) {
     assert(model);
     cmlninit(&model->net, insize, outsize, layers);
-    cmlnmakenets(&model->net);
     cmlninit(&model->lasts, insize, outsize, layers);
-    cmlnmakenets(&model->lasts);
-    cmlnrandinit(&model->net, 0.1f);
     return 0;
 }
 
+int cmlmodelsetlayersize(struct cmlmodel * model, int lno, int size) {
+    cmlnsetlayersize(&model->net, lno, size);
+    return 0;
+}
+
+int cmlmodelmakenets(struct cmlmodel * model) {
+    cmlnmakenets(&model->net);
+    cmlnrandinit(&model->net, 0.1f);
+    cmlncopysizes(&model->lasts, &model->net);
+    cmlnmakenets(&model->lasts);
+    return 0;
+}
 
 int cmlmodelfree(struct cmlmodel * model) {
     assert(model);
@@ -139,6 +148,7 @@ static int pdinit(struct pds * pd, struct cmlneuralnet * sinfo, int ln) {
 
     for (int i = 0; i < s; ++i) {
         cmlninit(&(pd->partials[i]), sinfo->insize, sinfo->outsize, sinfo->layers);
+        cmlncopysizes(&(pd->partials[i]), sinfo);
         cmlnmakenets(&(pd->partials[i]));
     }
 
@@ -361,6 +371,7 @@ int cmlmodellearn(struct cmlmodel * model, float learnspeed, int ss, int es) {
     /* Every training datapoint will add its own weights to this. */
     struct cmlneuralnet tweaks;
     cmlninit(&tweaks, model->net.insize, model->net.outsize, model->net.layers);
+    cmlncopysizes(&tweaks, &model->net);
     cmlnmakenets(&tweaks);
 
     for (int i = ss; i < es; ++i) {

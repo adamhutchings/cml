@@ -35,6 +35,16 @@ struct cmlneuralnet {
 int cmlninit(struct cmlneuralnet * net, int insize, int outsize, int layers);
 
 /**
+ * Set the size of the lno-th intermediate layer.
+ */
+int cmlnsetlayersize(struct cmlneuralnet * net, int lno, int size);
+
+/**
+ * Set the sizes of n1 to the sizes of n2.
+*/
+int cmlncopysizes(struct cmlneuralnet * n1, struct cmlneuralnet * n2);
+
+/**
  * Make the neural nets and bias vectors.
  */
 int cmlnmakenets(struct cmlneuralnet * net);

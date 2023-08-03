@@ -51,6 +51,8 @@ struct cmlhyperparams {
 };
 
 int cmlmodelinit(struct cmlmodel * model, int insize, int outsize, int layers);
+int cmlmodelsetlayersize(struct cmlmodel * model, int lno, int size);
+int cmlmodelmakenets(struct cmlmodel * model);
 
 int cmlmodelfree(struct cmlmodel * model);
 

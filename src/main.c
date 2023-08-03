@@ -18,6 +18,7 @@ int iristest() {
     struct cmlmodel model;
 
     cmlmodelinit(&model, 4, 1, 1);
+    cmlmodelmakenets(&model);
 
     cmlreadiris("data/iris/iristraining.csv", &tri, &tro, &trainno);
     cmlreadiris("data/iris/iristesting.csv", &tei, &teo, &testno);
@@ -91,6 +92,7 @@ int mnisttest() {
     printf("%s\n", "Initializing model ...");
 
     cmlmodelinit(&model, MNIST_INPUT_SIZE, MNIST_OUTPUT_SIZE, 2);
+    cmlmodelmakenets(&model);
 
     printf("%s\n", "Reading training data ...");
     cmlreadmnist("data/mnist/mnisttraining.csv", &tri, &tro, &trainno);

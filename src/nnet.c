@@ -30,6 +30,31 @@ int cmlninit(struct cmlneuralnet * net, int insize, int outsize, int layers) {
 
 }
 
+int cmlnsetlayersize(struct cmlneuralnet * net, int lno, int size) {
+
+    assert(lno >= 0);
+    assert(lno < net->layers - 1);
+
+    net->im_sizes[lno] = size;
+
+    return 0;
+
+}
+
+int cmlncopysizes(struct cmlneuralnet * n1, struct cmlneuralnet * n2) {
+
+    assert(n1 && n2);
+    assert(n1->layers == n2->layers);
+
+    /* I could use memcpy here, or I could just not. */
+    for (int i = 0; i < n1->layers - 1; ++i) {
+        n1->im_sizes[i] = n2->im_sizes[i];
+    }
+
+    return 0;
+
+}
+
 int cmlnmakenets(struct cmlneuralnet * net) {
 
     /* Make matrices of size insize -> im_sizes[0] -> im_sizes[1], ...
