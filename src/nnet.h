@@ -47,7 +47,7 @@ int cmlncopysizes(struct cmlneuralnet * n1, struct cmlneuralnet * n2);
 /**
  * Make the neural nets and bias vectors.
  */
-int cmlnmakenets(struct cmlneuralnet * net);
+int cmlnmakewb(struct cmlneuralnet * net);
 
 /**
  * Destroy the memory usage in the neural net.

@@ -55,7 +55,7 @@ int cmlncopysizes(struct cmlneuralnet * n1, struct cmlneuralnet * n2) {
 
 }
 
-int cmlnmakenets(struct cmlneuralnet * net) {
+int cmlnmakewb(struct cmlneuralnet * net) {
 
     /* Make matrices of size insize -> im_sizes[0] -> im_sizes[1], ...
     im_sizes[layers - 3] -> im_sizes[layers - 2] -> outsize . */
