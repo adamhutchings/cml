@@ -31,7 +31,7 @@ int cmlninit(struct cmlneuralnet * net, int insize, int outsize, int layers) {
     /* Just to make things neat, we'll deal with the small-size cases separately
     - 1 layer (one matrix), 2 layers (one internal size). */
     net->matrices = calloc(net->layers, sizeof (struct cmlmatrix));
-    if (layers == 1) {
+    if (net->layers == 1) {
         cmlminit(&(net->matrices[0]), net->insize, net->outsize);
     } else if (net->layers == 2) {
         int is = net->im_sizes[0];
@@ -49,7 +49,7 @@ int cmlninit(struct cmlneuralnet * net, int insize, int outsize, int layers) {
     for (int i = 0; i < net->layers - 1; ++i) {
         cmlvinit(&(net->biases[i]), net->im_sizes[i]);
     }
-    cmlvinit(&(net->biases[layers - 1]), net->outsize);
+    cmlvinit(&(net->biases[net->layers - 1]), net->outsize);
 
     return 0;
 
