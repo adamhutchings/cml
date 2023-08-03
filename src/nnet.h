@@ -34,6 +34,8 @@ struct cmlneuralnet {
  */
 int cmlninit(struct cmlneuralnet * net, int insize, int outsize, int layers);
 
+int cmlnmakenets(struct cmlneuralnet * net);
+
 /**
  * Destroy the memory usage in the neural net.
  */

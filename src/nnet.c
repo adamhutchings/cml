@@ -26,6 +26,12 @@ int cmlninit(struct cmlneuralnet * net, int insize, int outsize, int layers) {
         );
     }
 
+    return 0;
+
+}
+
+int cmlnmakenets(struct cmlneuralnet * net) {
+
     /* Make matrices of size insize -> im_sizes[0] -> im_sizes[1], ...
     im_sizes[layers - 3] -> im_sizes[layers - 2] -> outsize . */
     /* Just to make things neat, we'll deal with the small-size cases separately

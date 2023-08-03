@@ -12,7 +12,9 @@
 int cmlmodelinit(struct cmlmodel * model, int insize, int outsize, int layers) {
     assert(model);
     cmlninit(&model->net, insize, outsize, layers);
+    cmlnmakenets(&model->net);
     cmlninit(&model->lasts, insize, outsize, layers);
+    cmlnmakenets(&model->lasts);
     cmlnrandinit(&model->net, 0.1f);
     return 0;
 }
@@ -135,8 +137,10 @@ static int pdinit(struct pds * pd, struct cmlneuralnet * sinfo, int ln) {
     pd->partials = calloc(s, sizeof(struct cmlneuralnet));
     assert(pd->partials);
 
-    for (int i = 0; i < s; ++i)
+    for (int i = 0; i < s; ++i) {
         cmlninit(&(pd->partials[i]), sinfo->insize, sinfo->outsize, sinfo->layers);
+        cmlnmakenets(&(pd->partials[i]));
+    }
 
     cmlvinit(&pd->svals, s);
     cmlvinit(&pd->dvals, s);
@@ -357,6 +361,7 @@ int cmlmodellearn(struct cmlmodel * model, float learnspeed, int ss, int es) {
     /* Every training datapoint will add its own weights to this. */
     struct cmlneuralnet tweaks;
     cmlninit(&tweaks, model->net.insize, model->net.outsize, model->net.layers);
+    cmlnmakenets(&tweaks);
 
     for (int i = ss; i < es; ++i) {
         cmlgetpdfrompoint(model, &tweaks, i % model->train_no);
