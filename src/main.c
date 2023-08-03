@@ -92,6 +92,7 @@ int mnisttest() {
     printf("%s\n", "Initializing model ...");
 
     cmlmodelinit(&model, MNIST_INPUT_SIZE, MNIST_OUTPUT_SIZE, 2);
+    cmlmodelsetlayersize(&model, 0, 32);
     cmlmodelmakenets(&model);
 
     printf("%s\n", "Reading training data ...");
