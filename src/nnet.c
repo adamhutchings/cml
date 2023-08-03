@@ -30,23 +30,23 @@ int cmlninit(struct cmlneuralnet * net, int insize, int outsize, int layers) {
     im_sizes[layers - 3] -> im_sizes[layers - 2] -> outsize . */
     /* Just to make things neat, we'll deal with the small-size cases separately
     - 1 layer (one matrix), 2 layers (one internal size). */
-    net->matrices = calloc(layers, sizeof (struct cmlmatrix));
+    net->matrices = calloc(net->layers, sizeof (struct cmlmatrix));
     if (layers == 1) {
-        cmlminit(&(net->matrices[0]), insize, outsize);
-    } else if (layers == 2) {
+        cmlminit(&(net->matrices[0]), net->insize, net->outsize);
+    } else if (net->layers == 2) {
         int is = net->im_sizes[0];
-        cmlminit(&(net->matrices[0]), insize, is);
-        cmlminit(&(net->matrices[1]), is, outsize);
+        cmlminit(&(net->matrices[0]), net->insize, is);
+        cmlminit(&(net->matrices[1]), is, net->outsize);
     } else {
-        cmlminit(&(net->matrices[0]), insize, net->im_sizes[0]);
-        cmlminit(&(net->matrices[layers - 1]), net->im_sizes[layers - 2], outsize);
-        for (int i = 0; i < layers - 2; ++i) {
+        cmlminit(&(net->matrices[0]), net->insize, net->im_sizes[0]);
+        cmlminit(&(net->matrices[net->layers - 1]), net->im_sizes[net->layers - 2], net->outsize);
+        for (int i = 0; i < net->layers - 2; ++i) {
             cmlminit(&(net->matrices[i + 1]), net->im_sizes[i], net->im_sizes[i + 1]);
         }
     }
 
-    net->biases = calloc(layers, sizeof (struct cmlvector));
-    for (int i = 0; i < layers - 1; ++i) {
+    net->biases = calloc(net->layers, sizeof (struct cmlvector));
+    for (int i = 0; i < net->layers - 1; ++i) {
         cmlvinit(&(net->biases[i]), net->im_sizes[i]);
     }
     cmlvinit(&(net->biases[layers - 1]), net->outsize);
