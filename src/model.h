@@ -21,6 +21,9 @@ struct cmlmodel {
     struct cmlvector * tests_in;
     struct cmlvector * tests_out;
 
+    /* How many threads the model runs on. (TODO -- move to params.) */
+    unsigned threads;
+
 };
 
 /**

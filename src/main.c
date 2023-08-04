@@ -34,6 +34,7 @@ int iristest() {
     params.training_max = 0;
     params.status_rarity = 100;
     params.lambda = 0;
+    model.threads = 1;
 
     /* For Iris, our goal loss is less than the error threshold. */
     cmlmodeltrain(&model, &params);
@@ -113,6 +114,7 @@ int mnisttest() {
     params.training_max = 10;
     params.status_rarity = 1;
     params.lambda = 0.01;
+    model.threads = 20;
 
     printf("Starting error: %f\n", cmlmodelgettestloss(&model));
     printf("Starting accuracy: %.3f%%\n", mnist_accuracy(&model) * 100);

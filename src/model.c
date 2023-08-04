@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <math.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -81,8 +82,21 @@ static float sqdistance(struct cmlvector * v1, struct cmlvector * v2) {
     return total;
 }
 
+static float cmlmodelgettrainloss_ri(struct cmlmodel * model, int ss, int es) {
+    assert(model);
+    struct cmlvector output_buf;
+    cmlvinit(&output_buf, model->net.insize);
+    float loss = 0;
+    for (int j = ss; j < es; ++j) {
+        int i = j % model->train_no;
+        cmlnapp(&model->net, &model->trains_in[i], &output_buf);
+        loss += sqdistance(&output_buf, &model->trains_out[i]);
+        cmlvfree(&output_buf);
+    }
+    return loss / (es - ss);
+}
 
-static float cmlmodelgettestloss_r(struct cmlmodel * model, int ss, int es) {
+static float cmlmodelgettestloss_ri(struct cmlmodel * model, int ss, int es) {
     assert(model);
     struct cmlvector output_buf;
     cmlvinit(&output_buf, model->net.insize);
@@ -96,18 +110,68 @@ static float cmlmodelgettestloss_r(struct cmlmodel * model, int ss, int es) {
     return loss / (es - ss);
 }
 
-static float cmlmodelgettrainloss_r(struct cmlmodel * model, int ss, int es) {
-    assert(model);
-    struct cmlvector output_buf;
-    cmlvinit(&output_buf, model->net.insize);
-    float loss = 0;
-    for (int j = ss; j < es; ++j) {
-        int i = j % model->train_no;
-        cmlnapp(&model->net, &model->trains_in[i], &output_buf);
-        loss += sqdistance(&output_buf, &model->trains_out[i]);
-        cmlvfree(&output_buf);
+struct lossparams {
+    struct cmlmodel * model;
+    int ss, es;
+    float * storeloc;
+};
+
+static void * cmgtrrp(struct lossparams * lp) {
+    *(lp->storeloc) = cmlmodelgettrainloss_ri(lp->model, lp->ss, lp->es);
+    return NULL;
+}
+
+static void * cmgterp(struct lossparams * lp) {
+    *(lp->storeloc) = cmlmodelgettestloss_ri(lp->model, lp->ss, lp->es);
+    return NULL;
+}
+
+/* Test is either 0 or 1. If 0, we do it on the training data. */
+static float cmlmodelgettloss_r(struct cmlmodel * model, int ss, int es, int test) {
+
+    unsigned t = model->threads;
+
+    /* Where to store the results from each computation. */
+    float * results = calloc(t, sizeof(float));
+
+    /* All of the threads we're making. */
+    pthread_t * threads = calloc(t, sizeof(pthread_t));
+
+    /* The sets of arguments to the function. */
+    struct lossparams * lps = calloc(t, sizeof(struct lossparams));
+    for (int i = 0; i < t; ++i) {
+        lps[i].model = model;
+        lps[i].ss = ss + ((i + 0) * (es - ss)) / t;
+        lps[i].es = ss + ((i + 1) * (es - ss)) / t;
+        lps[i].storeloc = &(results[i]);
     }
-    return loss / (es - ss);
+
+    void * func = test ? cmgterp : cmgtrrp;
+
+    for (int i = 0; i < t; ++i) {
+        pthread_create(&threads[i], NULL, func, &(lps[i]));
+    }
+
+    for (int i = 0; i < t; ++i) {
+        pthread_join(threads[i], NULL);
+    }
+
+    float r = 0.f;
+
+    for (int i = 0; i < t; ++i) {
+        r += results[i];
+    }
+
+    return r / t;
+
+}
+
+static float cmlmodelgettestloss_r(struct cmlmodel * model, int ss, int es) {
+    return cmlmodelgettloss_r(model, ss, es, 1);
+}
+
+static float cmlmodelgettrainloss_r(struct cmlmodel * model, int ss, int es) {
+    return cmlmodelgettloss_r(model, ss, es, 0);
 }
 
 float cmlmodelgettestloss(struct cmlmodel * model) {
