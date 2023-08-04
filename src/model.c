@@ -366,7 +366,10 @@ static int cmlmodelmaketweak(struct cmlmodel * model, float tweak_amount, struct
 
 }
 
-int cmlmodellearn(struct cmlmodel * model, float learnspeed, int ss, int es) {
+/**
+ * Returns how many steps it took to improve.
+*/
+float cmlmodellearn(struct cmlmodel * model, float learnspeed, int ss, int es) {
 
     /* Every training datapoint will add its own weights to this. */
     struct cmlneuralnet tweaks;
@@ -375,22 +378,24 @@ int cmlmodellearn(struct cmlmodel * model, float learnspeed, int ss, int es) {
     cmlnmakewb(&tweaks);
 
     for (int i = ss; i < es; ++i) {
+        /* printf("Iteration %d of %d.\n", i + 1 - ss, es - ss); */
         cmlgetpdfrompoint(model, &tweaks, i % model->train_no);
     }
 
     /* Make tweaks until we stop improving, and then undo the last tweak. */
-    float loss = cmlmodelgettrainloss(model);
-    int first = 0;
-    for (;;) {
+    float loss = cmlmodelgettrainloss_r(model, ss, es), loss2;
+    for (int i = 0; ; ++i) {
+        /* printf("%d\n", i); */
         cmlmodelmaketweak(model, 1.0f, &tweaks, learnspeed);
-        float loss2 = cmlmodelgettrainloss_r(model, ss, es);
+        loss2 = cmlmodelgettrainloss_r(model, ss, es);
         if (loss2 > loss) {
             cmlmodelmaketweak(model, -1.0f, &tweaks, learnspeed);
-            if (!first)
+            if (i == 0)
+                return 0.5f;
+            else
                 return 1;
             break;
         }
-        first = 1;
         loss = loss2;
     }
 
@@ -424,9 +429,7 @@ int cmlmodeltrain(struct cmlmodel * model, struct cmlhyperparams * params) {
         trainloss = cmlmodelgettrainloss_r(model, ss, es);
         testloss  = cmlmodelgettestloss_r (model, ss, es);
 
-        int slowdown = cmlmodellearn(model, sp, ss, es);
-        if (slowdown)
-            sp /= 2;
+        sp *= cmlmodellearn(model, sp, ss, es);
         ++i;
 
         if (i % params->status_rarity == 0)
