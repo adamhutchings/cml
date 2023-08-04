@@ -162,6 +162,10 @@ static float cmlmodelgettloss_r(struct cmlmodel * model, int ss, int es, int tes
         r += results[i];
     }
 
+    free(results);
+    free(threads);
+    free(lps);
+
     return r / t;
 
 }
@@ -399,6 +403,20 @@ static int cmlgetpdfrompoint(struct cmlmodel * model, struct cmlneuralnet * pds,
     return cmlgetpddp(&model->net, &model->trains_in[i], &model->trains_out[i], pds);
 }
 
+struct pdparams {
+    struct cmlmodel * model;
+    struct cmlneuralnet * pds;
+    int ss;
+    int es;
+};
+
+/* Get the pds from a range of datapoints. */
+static void * cmlgetpdfromrange(struct pdparams * pdp) {
+    for (int i = pdp->ss; i < pdp->es; ++i)
+        cmlgetpdfrompoint(pdp->model, pdp->pds, i);
+    return NULL;
+}
+
 static int cmlmodelmaketweak(struct cmlmodel * model, float tweak_amount, struct cmlneuralnet * tweaks, float learnspeed) {
 
     /* Change all matrix entries */
@@ -452,18 +470,67 @@ static int cmlmodeladdreg(struct cmlmodel * model, struct cmlneuralnet * tweaks,
 */
 float cmlmodellearn(struct cmlmodel * model, float learnspeed, int ss, int es, float lambda) {
 
-    /* Every training datapoint will add its own weights to this. */
+    int t = model->threads;
+
+    struct cmlneuralnet * tweaksets = calloc(t, sizeof(struct cmlneuralnet));
+    for (int i = 0; i < t; ++i) {
+        cmlninit(&tweaksets[i], model->net.insize, model->net.outsize, model->net.layers);
+        cmlncopysizes(&tweaksets[i], &model->net);
+        cmlnmakewb(&tweaksets[i]);
+    }
+
+    struct pdparams * paramsets = calloc(t, sizeof(struct pdparams));
+    for (int i = 0; i < t; ++i) {
+        paramsets[i].model = model;
+        paramsets[i].pds = &tweaksets[i];
+        paramsets[i].ss = ss + ((i + 0) * (es - ss)) / t;
+        paramsets[i].es = ss + ((i + 1) * (es - ss)) / t;
+    }
+
+    pthread_t * threads = calloc(t, sizeof(pthread_t));
+
+    for (int i = 0; i < t; ++i) {
+        pthread_create(&threads[i], NULL, (void *) cmlgetpdfromrange, &paramsets[i]);
+    }
+
+    for (int i = 0; i < t; ++i) {
+        pthread_join(threads[i], NULL);
+    }
+
     struct cmlneuralnet tweaks;
     cmlninit(&tweaks, model->net.insize, model->net.outsize, model->net.layers);
     cmlncopysizes(&tweaks, &model->net);
     cmlnmakewb(&tweaks);
 
-    for (int i = ss; i < es; ++i) {
-        /* printf("Iteration %d of %d.\n", i + 1 - ss, es - ss); */
-        cmlgetpdfrompoint(model, &tweaks, i % model->train_no);
+    for (int i1 = 0; i1 < t; ++i1) {
+        /* Change all matrix entries */
+        for (int i = 0; i < model->net.layers; ++i) {
+            for (int p = 0; p < model->net.matrices[i].m * model->net.matrices[i].n; ++p) {
+                tweaks.matrices[i].entries[p] += tweaksets[i1].matrices[i].entries[p];
+            }
+        }
+        for (int i = 0; i < model->net.layers - 1; ++i) {
+            int s;
+            if (i == model->net.layers - 1)
+                s = model->net.outsize;
+            else
+                s = model->net.im_sizes[i];
+            for (int p = 0; p < s; ++p) {
+                tweaks.biases[i].entries[p] += tweaksets[i1].biases[i].entries[p];
+            }
+        }
     }
 
+    for (int i = 0; i < t; ++i) {
+        cmlnfree(&tweaksets[i]);
+    }
+    free(tweaksets);
+    free(paramsets);
+    free(threads);
+
     cmlmodeladdreg(model, &tweaks, lambda);
+
+    float rtval = 0;
 
     /* Make tweaks until we stop improving, and then undo the last tweak. */
     float loss = cmlmodelgettrainloss_r(model, ss, es), loss2;
@@ -475,15 +542,16 @@ float cmlmodellearn(struct cmlmodel * model, float learnspeed, int ss, int es, f
         if (loss2 > loss) {
             cmlmodelmaketweak(model, -pr, &tweaks, learnspeed);
             if (i == 0)
-                return 0.5f;
+                rtval = 0.5f;
             else
-                return 1;
+                rtval = 1.f;
             break;
         }
         loss = loss2;
     }
 
-    return 0;
+    cmlnfree(&tweaks);
+    return rtval;
 
 }
 
