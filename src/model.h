@@ -48,6 +48,9 @@ struct cmlhyperparams {
     /* How many rounds to print a status update after. */
     int status_rarity;
 
+    /* How much of a regularization term there is. */
+    float lambda;
+
 };
 
 int cmlmodelinit(struct cmlmodel * model, int insize, int outsize, int layers);
@@ -67,7 +70,7 @@ float cmlmodelgettrainloss(struct cmlmodel * model);
 /**
  * This is the real meat. Train the neural network one round.
  */
-float cmlmodellearn(struct cmlmodel * model, float learnspeed, int ss, int es);
+float cmlmodellearn(struct cmlmodel * model, float learnspeed, int ss, int es, float lambda);
 
 int cmlmodeltrain(struct cmlmodel * model, struct cmlhyperparams * params);
 

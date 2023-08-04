@@ -367,9 +367,26 @@ static int cmlmodelmaketweak(struct cmlmodel * model, float tweak_amount, struct
 }
 
 /**
+ * Add regularizations. 
+ */
+static int cmlmodeladdreg(struct cmlmodel * model, struct cmlneuralnet * tweaks, float lambda) {
+
+    /* Change all matrix entries */
+    for (int i = 0; i < model->net.layers; ++i) {
+        for (int p = 0; p < model->net.matrices[i].m * model->net.matrices[i].n; ++p) {
+            tweaks->matrices[i].entries[p] -= 2 * model->net.matrices[i].entries[p] * lambda;
+        }
+    }
+
+    /* No bias change. */
+    return 0;
+
+}
+
+/**
  * Returns how many steps it took to improve.
 */
-float cmlmodellearn(struct cmlmodel * model, float learnspeed, int ss, int es) {
+float cmlmodellearn(struct cmlmodel * model, float learnspeed, int ss, int es, float lambda) {
 
     /* Every training datapoint will add its own weights to this. */
     struct cmlneuralnet tweaks;
@@ -382,14 +399,17 @@ float cmlmodellearn(struct cmlmodel * model, float learnspeed, int ss, int es) {
         cmlgetpdfrompoint(model, &tweaks, i % model->train_no);
     }
 
+    cmlmodeladdreg(model, &tweaks, lambda);
+
     /* Make tweaks until we stop improving, and then undo the last tweak. */
     float loss = cmlmodelgettrainloss_r(model, ss, es), loss2;
+    float pr = 1 / (es - ss);
     for (int i = 0; ; ++i) {
         /* printf("%d\n", i); */
-        cmlmodelmaketweak(model, 1.0f, &tweaks, learnspeed);
+        cmlmodelmaketweak(model, pr, &tweaks, learnspeed);
         loss2 = cmlmodelgettrainloss_r(model, ss, es);
         if (loss2 > loss) {
-            cmlmodelmaketweak(model, -1.0f, &tweaks, learnspeed);
+            cmlmodelmaketweak(model, -pr, &tweaks, learnspeed);
             if (i == 0)
                 return 0.5f;
             else
@@ -429,7 +449,7 @@ int cmlmodeltrain(struct cmlmodel * model, struct cmlhyperparams * params) {
         trainloss = cmlmodelgettrainloss_r(model, ss, es);
         testloss  = cmlmodelgettestloss_r (model, ss, es);
 
-        sp *= cmlmodellearn(model, sp, ss, es);
+        sp *= cmlmodellearn(model, sp, ss, es, params->lambda);
         ++i;
 
         if (i % params->status_rarity == 0)
