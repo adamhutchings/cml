@@ -564,6 +564,8 @@ int cmlmodeltrain(struct cmlmodel * model, struct cmlhyperparams * params) {
 
     start = time(&start);
 
+    params->iterations = 0;
+
     int i = 0, ss, es;
 
     float sp = params->learning_speed;

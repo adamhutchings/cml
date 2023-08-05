@@ -27,7 +27,6 @@ int iristest() {
     cmlmodeladdtesting(&model, testno, tei, teo);
 
     struct cmlhyperparams params;
-    params.iterations = 0;
     params.learning_speed = 0.00001f;
     params.sw = 0;
     params.error_threshold = 0.04;
@@ -107,7 +106,6 @@ int mnisttest() {
 
     struct cmlhyperparams params;
     params.error_threshold = 0;
-    params.iterations = 0;
     params.learning_speed = 0.0001;
     params.sw = 1;
     params.sw_size = 100;
