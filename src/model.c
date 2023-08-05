@@ -413,7 +413,7 @@ struct pdparams {
 /* Get the pds from a range of datapoints. */
 static void * cmlgetpdfromrange(struct pdparams * pdp) {
     for (int i = pdp->ss; i < pdp->es; ++i)
-        cmlgetpdfrompoint(pdp->model, pdp->pds, i);
+        cmlgetpdfrompoint(pdp->model, pdp->pds, i % pdp->model->train_no);
     return NULL;
 }
 
