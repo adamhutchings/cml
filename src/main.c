@@ -109,7 +109,7 @@ int mnisttest() {
     params.learning_speed = 0.0001;
     params.sw = 1;
     params.sw_size = 100;
-    params.training_max = 10;
+    params.training_max = 100;
     params.status_rarity = 1;
     params.lambda = 0.01;
     model.threads = 20;
