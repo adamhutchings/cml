@@ -21,7 +21,8 @@ good neural network.
 
 ## Capabilities
 
-- Can train on IRIS in 0.02 seconds.
+- Can train on IRIS in 0.02 seconds. (Run the `successcounter.py` script to test
+this yourself ONLY IF `main.c` is set to run `iristest` instead of `mnisttest`.)
 - Can recognize handwritten digits with 75% accuracy in under 90 seconds.
 
 ## Strategies Used
